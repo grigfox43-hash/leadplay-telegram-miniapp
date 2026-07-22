@@ -40,7 +40,9 @@ app.get('/api/leads', async (req, res) => {
     }
 
     const rows = await all('SELECT * FROM leads ORDER BY pub_date DESC');
-    const userStates = await all('SELECT lead_id, stage FROM lead_states WHERE telegram_id = ?', [telegramId]);
+    
+    // Fetch all user states for both telegram_id and default_user
+    const userStates = await all('SELECT lead_id, stage FROM lead_states WHERE telegram_id = ? OR telegram_id = "default_user"', [telegramId]);
     const stateMap = {};
     userStates.forEach(s => stateMap[s.lead_id] = s.stage);
 
@@ -51,7 +53,6 @@ app.get('/api/leads', async (req, res) => {
       const ageDays = Math.max(0, Math.floor((now - pubTime) / (1000 * 60 * 60 * 24)));
       const tags = JSON.parse(r.tags || '[]');
       
-      // Calculate dynamic score based on user's custom keywords if provided
       const score = customKeywords ? calculateRelevanceScore(r.title, r.description, tags, customKeywords) : r.score;
 
       return {
@@ -104,7 +105,7 @@ app.get('/api/pipeline', async (req, res) => {
       SELECT ls.stage, ls.notes, ls.updated_at, l.*
       FROM lead_states ls
       JOIN leads l ON ls.lead_id = l.id
-      WHERE ls.telegram_id = ? AND ls.stage NOT IN ('hidden', 'rejected')
+      WHERE (ls.telegram_id = ? OR ls.telegram_id = "default_user") AND ls.stage NOT IN ('hidden', 'rejected')
       ORDER BY ls.updated_at DESC
     `, [telegramId]);
 
@@ -145,17 +146,28 @@ app.post('/api/leads/:id/stage', async (req, res) => {
     const leadId = req.params.id;
     const { stage, telegram_id = 'default_user', notes = '' } = req.body;
 
+    const now = new Date().toISOString();
+
     if (!stage) {
-      await run('DELETE FROM lead_states WHERE telegram_id = ? AND lead_id = ?', [telegram_id, leadId]);
+      await run('DELETE FROM lead_states WHERE (telegram_id = ? OR telegram_id = "default_user") AND lead_id = ?', [telegram_id, leadId]);
       return res.json({ success: true, stage: null });
     }
 
-    const now = new Date().toISOString();
+    // Save stage for user's telegram_id
     await run(`
       INSERT INTO lead_states (telegram_id, lead_id, stage, notes, updated_at)
       VALUES (?, ?, ?, ?, ?)
       ON CONFLICT(telegram_id, lead_id) DO UPDATE SET stage = excluded.stage, notes = excluded.notes, updated_at = excluded.updated_at
     `, [telegram_id, leadId, stage, notes, now]);
+
+    // If hiding, ALSO save for default_user to ensure global persistence across sessions
+    if (stage === 'hidden' && telegram_id !== 'default_user') {
+      await run(`
+        INSERT INTO lead_states (telegram_id, lead_id, stage, notes, updated_at)
+        VALUES ('default_user', ?, 'hidden', ?, ?)
+        ON CONFLICT(telegram_id, lead_id) DO UPDATE SET stage = 'hidden', updated_at = excluded.updated_at
+      `, [leadId, notes, now]);
+    }
 
     res.json({ success: true, stage, lead_id: leadId });
   } catch (err) {

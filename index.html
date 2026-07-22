@@ -602,6 +602,22 @@
     return PLATFORM_ICONS['Telegram'];
   }
 
+  // Client-Side Hidden Leads Persistence
+  function getHiddenLeadKeys() {
+    try {
+      return JSON.parse(localStorage.getItem('leadplay_hidden_lead_keys') || '[]');
+    } catch(e) {
+      return [];
+    }
+  }
+
+  function markLeadAsHiddenClient(leadId, leadUrl) {
+    const hidden = getHiddenLeadKeys();
+    if (leadId && !hidden.includes(leadId)) hidden.push(leadId);
+    if (leadUrl && !hidden.includes(leadUrl)) hidden.push(leadUrl);
+    localStorage.setItem('leadplay_hidden_lead_keys', JSON.stringify(hidden));
+  }
+
   // 1. THEME LOGIC
   const themeBtn = document.getElementById('themeToggle');
   
@@ -724,7 +740,8 @@
       const data = await res.json();
 
       if (data.success) {
-        currentLeads = data.leads;
+        const hiddenKeys = getHiddenLeadKeys();
+        currentLeads = data.leads.filter(j => !hiddenKeys.includes(j.id) && !hiddenKeys.includes(j.url));
         renderFeed();
         setTimeout(restoreScrollPos, 50);
       }
@@ -833,6 +850,9 @@
   }
 
   async function hideLead(leadId) {
+    const lead = currentLeads.find(x => x.id === leadId);
+    markLeadAsHiddenClient(leadId, lead ? lead.url : '');
+
     const cardEl = document.getElementById(`card_${leadId}`);
     if (cardEl) {
       cardEl.classList.add('hiding');
