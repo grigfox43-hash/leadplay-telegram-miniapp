@@ -520,9 +520,9 @@
     applyTheme(current === 'dark' ? 'light' : 'dark');
   };
 
-  // 2. FILTERS PERSISTENCE (localStorage)
+  // 2. FILTERS PERSISTENCE
   let filters = {
-    keywords: 'playable ads, playable, HTML5 banner, interactive ads',
+    keywords: '',
     sources: ['Telegram', 'Freelancer', 'HeadHunter', 'Habr Freelance', 'Adzuna'],
     days: 14,
     score: 65
@@ -537,7 +537,7 @@
       } catch (e) {}
     }
 
-    document.getElementById('keywords').value = filters.keywords || '';
+    document.getElementById('keywords').value = filters.keywords || 'playable ads, playable, HTML5 banner, interactive ads';
     document.getElementById('daysRange').value = filters.days;
     document.getElementById('daysValue').textContent = filters.days;
     document.getElementById('scoreRange').value = filters.score;
@@ -578,7 +578,6 @@
     isInitialScrollRestored = true;
   }
 
-  // Track and save scroll position continuously
   window.addEventListener('scroll', () => {
     if (window.scrollY > 0) {
       localStorage.setItem('leadplay_scroll_pos', String(window.scrollY));
@@ -605,7 +604,8 @@
 
   async function loadLeads() {
     try {
-      const q = encodeURIComponent(document.getElementById('search').value || filters.keywords || '');
+      const typedQuery = document.getElementById('search').value.trim();
+      const q = encodeURIComponent(typedQuery);
       const sources = encodeURIComponent(filters.sources.join(','));
       const url = `/api/leads?q=${q}&sources=${sources}&days=${filters.days}&score=${filters.score}&telegram_id=${telegramId}`;
 
@@ -615,7 +615,6 @@
       if (data.success) {
         currentLeads = data.leads;
         renderFeed();
-        // Restore scroll after DOM cards are rendered
         setTimeout(restoreScrollPos, 50);
       }
     } catch (e) {
@@ -794,7 +793,7 @@
   // Telegram Window Expansion & Size Control
   if (window.Telegram?.WebApp) {
     Telegram.WebApp.ready();
-    Telegram.WebApp.expand(); // Force full vertical expansion
+    Telegram.WebApp.expand();
     
     if (typeof Telegram.WebApp.requestFullscreen === 'function') {
       try { Telegram.WebApp.requestFullscreen(); } catch (e) {}
