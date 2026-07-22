@@ -210,7 +210,7 @@
     .section-title { display: flex; align-items: center; margin: 15px 1px 9px; }
     .section-title h2 { margin: 0; font-size: 15px; }
     .section-title span { margin-left: auto; color: var(--muted); font-size: 12px; }
-    .cards { display: grid; gap: 10px; transition: all 0.3s; }
+    .cards { display: grid; gap: 10px; }
     
     .card {
       background: var(--surface);
@@ -219,8 +219,13 @@
       padding: 14px;
       box-shadow: var(--shadow);
       position: relative;
-      transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1), transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), padding 0.35s, margin 0.35s, border-width 0.35s;
-      max-height: 500px;
+      transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+                  transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+                  max-height 0.38s cubic-bezier(0.4, 0, 0.2, 1),
+                  padding 0.38s cubic-bezier(0.4, 0, 0.2, 1),
+                  margin 0.38s cubic-bezier(0.4, 0, 0.2, 1),
+                  border-width 0.38s;
+      max-height: 600px;
       opacity: 1;
       overflow: hidden;
       transform: scale(1) translateY(0);
@@ -228,13 +233,13 @@
     
     .card.hiding {
       opacity: 0;
-      transform: scale(0.92) translateY(-12px);
-      max-height: 0;
-      padding-top: 0;
-      padding-bottom: 0;
-      margin-top: 0;
-      margin-bottom: -10px;
-      border-width: 0;
+      transform: scale(0.92) translateY(-10px);
+      max-height: 0 !important;
+      padding-top: 0 !important;
+      padding-bottom: 0 !important;
+      margin-top: 0 !important;
+      margin-bottom: 0 !important;
+      border-width: 0 !important;
     }
 
     .card-head { display: flex; gap: 10px; align-items: flex-start; }
@@ -831,10 +836,24 @@
     const cardEl = document.getElementById(`card_${leadId}`);
     if (cardEl) {
       cardEl.classList.add('hiding');
+      setTimeout(() => {
+        cardEl.remove();
+        const cntEl = document.getElementById('foundCount');
+        const count = parseInt(cntEl.textContent || '0', 10);
+        if (count > 0) cntEl.textContent = count - 1;
+      }, 380);
     }
-    setTimeout(async () => {
-      await updateStage(leadId, 'hidden');
-    }, 360);
+
+    try {
+      await fetch(`/api/leads/${leadId}/stage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ stage: 'hidden', telegram_id: telegramId })
+      });
+      loadPipeline();
+    } catch (e) {
+      console.error('Failed to hide lead:', e);
+    }
   }
 
   async function toggleSave(leadId, currentStage) {
