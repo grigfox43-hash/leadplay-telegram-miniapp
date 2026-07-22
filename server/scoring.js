@@ -1,9 +1,9 @@
 /**
  * Relevance scoring engine for LeadPlay
- * Evaluates how strongly a lead matches Playable Ads / HTML5 Banner / Interactive Ads domain.
+ * Evaluates how strongly a lead matches custom user keywords & Playable Ads / HTML5 domain.
  */
 
-const HIGH_PRIORITY_KEYWORDS = [
+const DEFAULT_KEYWORDS = [
   'playable',
   'playable ad',
   'playable ads',
@@ -15,89 +15,65 @@ const HIGH_PRIORITY_KEYWORDS = [
   'html5 banner',
   'html5-баннер',
   'html5 баннер',
-  'html5 баннеры'
-];
-
-const MEDIUM_PRIORITY_KEYWORDS = [
+  'html5 баннеры',
   'html5',
   'canvas',
   'webgl',
   'gsap',
   'pixijs',
   'phaser',
-  'createjs',
-  'cocos',
-  'three.js',
-  'rich media',
-  'dv360',
-  'doubleclick',
-  'clicktag',
-  'креативы',
-  'мобильная реклама'
+  ' mini game',
+  'мини-игра'
 ];
 
-const GENERAL_DEV_KEYWORDS = [
-  'banner',
-  'баннер',
-  'анимация',
-  'мини-игра',
-  'мини игра',
-  'mini game',
-  'game dev',
-  'геймдев',
-  'javascript',
-  'js'
-];
-
-function calculateRelevanceScore(title = '', description = '', tags = []) {
+function calculateRelevanceScore(title = '', description = '', tags = [], customKeywordsStr = '') {
   const fullText = (title + ' ' + description + ' ' + (Array.isArray(tags) ? tags.join(' ') : tags)).toLowerCase();
   
-  let score = 50; // base score for candidate leads
+  let score = 50;
 
-  // High priority matching (+20 to +40 points)
-  let highMatches = 0;
-  HIGH_PRIORITY_KEYWORDS.forEach(kw => {
+  // Extract custom user keywords if provided (split by comma or newline)
+  let userKeywords = [];
+  if (customKeywordsStr && customKeywordsStr.trim()) {
+    userKeywords = customKeywordsStr
+      .split(/[,;\n]+/)
+      .map(k => k.trim().toLowerCase())
+      .filter(k => k.length > 1);
+  }
+
+  const activeKeywords = userKeywords.length > 0 ? userKeywords : DEFAULT_KEYWORDS;
+
+  let matchesCount = 0;
+  activeKeywords.forEach(kw => {
     if (fullText.includes(kw)) {
-      highMatches++;
+      matchesCount++;
     }
   });
 
-  if (highMatches > 0) {
-    score += Math.min(40, 25 + highMatches * 5);
+  if (matchesCount > 0) {
+    score += Math.min(45, 20 + matchesCount * 10);
   }
 
-  // Medium priority matching (+10 to +25 points)
-  let mediumMatches = 0;
-  MEDIUM_PRIORITY_KEYWORDS.forEach(kw => {
-    if (fullText.includes(kw)) {
-      mediumMatches++;
-    }
-  });
-
-  if (mediumMatches > 0) {
-    score += Math.min(25, 10 + mediumMatches * 4);
-  }
-
-  // General dev matching (+5 to +10 points)
-  let generalMatches = 0;
-  GENERAL_DEV_KEYWORDS.forEach(kw => {
-    if (fullText.includes(kw)) {
-      generalMatches++;
-    }
-  });
-
-  if (generalMatches > 0) {
-    score += Math.min(10, 5 + generalMatches * 2);
-  }
-
-  // Title emphasis bonus (+10 if high priority term is directly in title)
+  // Bonus for match in title
   const titleLower = title.toLowerCase();
-  if (HIGH_PRIORITY_KEYWORDS.some(kw => titleLower.includes(kw))) {
+  if (activeKeywords.some(kw => titleLower.includes(kw))) {
     score += 10;
   }
 
-  // Clamp score between 50 and 99
   return Math.min(99, Math.max(50, score));
+}
+
+/**
+ * Checks if a lead matches ANY of the user's custom keywords
+ */
+function matchesAnyKeyword(title = '', description = '', tags = [], keywordsStr = '') {
+  if (!keywordsStr || !keywordsStr.trim()) return true;
+
+  const fullText = (title + ' ' + description + ' ' + (Array.isArray(tags) ? tags.join(' ') : tags)).toLowerCase();
+  const list = keywordsStr.split(/[,;\n]+/).map(k => k.trim().toLowerCase()).filter(k => k.length > 0);
+
+  if (list.length === 0) return true;
+
+  return list.some(kw => fullText.includes(kw));
 }
 
 function extractTags(text = '') {
@@ -122,5 +98,6 @@ function extractTags(text = '') {
 
 module.exports = {
   calculateRelevanceScore,
+  matchesAnyKeyword,
   extractTags
 };

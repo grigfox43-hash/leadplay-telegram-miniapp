@@ -1,5 +1,6 @@
 const TelegramBot = require('node-telegram-bot-api');
-const { all, run } = require('./db');
+const { all, run, get } = require('./db');
+const { matchesAnyKeyword } = require('./scoring');
 
 const token = process.env.TELEGRAM_BOT_TOKEN;
 const miniAppUrl = process.env.MINI_APP_URL || 'https://leadplay.app';
@@ -23,8 +24,8 @@ if (token && token.trim() !== '') {
       `, [String(chatId), new Date().toISOString()]);
 
       const welcomeMessage = `👋 Привет, ${firstName}!\n\n` +
-        `🤖 **LeadPlay Bot** непрерывно мониторит новые заказы на **Playable Ads**, **HTML5-баннеры** и **интерактивную рекламу**.\n\n` +
-        `Я буду присылать вам свежие заказы сюда, а в Mini App вы можете отслеживать их по этапам воронки!`;
+        `🤖 **LeadPlay Bot** непрерывно мониторит новые заказы по вашим ключевым словам из фильтра.\n\n` +
+        `Я буду присылать вам свежие заказы прямо в этот чат каждые 10 минут!`;
 
       bot.sendMessage(chatId, welcomeMessage, {
         parse_mode: 'Markdown',
@@ -46,17 +47,21 @@ async function notifyUsersAboutNewLeads(newLeads = []) {
   if (!bot || newLeads.length === 0) return;
 
   try {
-    const users = await all('SELECT telegram_id FROM user_profiles');
+    const users = await all('SELECT telegram_id, keywords, min_score FROM user_profiles');
     if (users.length === 0) return;
 
     for (const user of users) {
       const chatId = user.telegram_id;
+      const userKeywords = user.keywords || '';
+      const minScore = user.min_score || 65;
 
       for (const lead of newLeads) {
-        if (lead.score < 75) continue; // Only notify high matching leads
+        // Check if lead matches user's custom keywords list or score threshold
+        const matchesKeywords = matchesAnyKeyword(lead.title, lead.description, lead.tags, userKeywords);
+        if (!matchesKeywords && lead.score < minScore) continue;
 
-        const isNotified = await all('SELECT 1 FROM notified_leads WHERE telegram_id = ? AND lead_id = ?', [chatId, lead.id]);
-        if (isNotified.length > 0) continue;
+        const isNotified = await get('SELECT 1 FROM notified_leads WHERE telegram_id = ? AND lead_id = ?', [chatId, lead.id]);
+        if (isNotified) continue;
 
         const tagsStr = Array.isArray(lead.tags) ? lead.tags.join(', ') : (lead.tags || '');
         const text = `🔥 **Новый подходящий заказ (${lead.score}% совпадение)**\n\n` +
@@ -64,7 +69,7 @@ async function notifyUsersAboutNewLeads(newLeads = []) {
           `💰 **Бюджет:** ${lead.budget}\n` +
           `🌐 **Источник:** ${lead.source}\n` +
           `🏷️ **Теги:** ${tagsStr}\n\n` +
-          `${lead.description.substring(0, 200)}...\n\n` +
+          `${lead.description.substring(0, 220)}...\n\n` +
           `🔗 [Открыть оригинал объявления](${lead.url})`;
 
         await bot.sendMessage(chatId, text, {

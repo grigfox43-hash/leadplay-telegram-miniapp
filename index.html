@@ -481,10 +481,10 @@
   <div class="sheet">
     <div class="handle"></div>
     <h2>Фильтры поиска</h2>
-    <p class="hint">Настройки применяются ко всем источникам в реальном времени.</p>
+    <p class="hint">Укажите любые ключевые слова через запятую.</p>
     
     <div class="label">Ключевые слова</div>
-    <input class="field" id="keywords" value="playable ads, playable, HTML5 banner, interactive ads" />
+    <input class="field" id="keywords" value="playable ads, playable, HTML5 banner, interactive ads" placeholder="Например: playable, html5, unity, python" />
     
     <div class="label">Площадки</div>
     <div class="checks">
@@ -558,7 +558,7 @@
 
   // 2. FILTERS PERSISTENCE
   let filters = {
-    keywords: '',
+    keywords: 'playable ads, playable, HTML5 banner, interactive ads',
     sources: ['Telegram', 'Freelancer', 'HeadHunter', 'Habr Freelance', 'Adzuna'],
     days: 14,
     score: 65
@@ -647,8 +647,9 @@
     try {
       const typedQuery = document.getElementById('search').value.trim();
       const q = encodeURIComponent(typedQuery);
+      const keywordsParam = encodeURIComponent(filters.keywords || '');
       const sources = encodeURIComponent(filters.sources.join(','));
-      const url = `/api/leads?q=${q}&sources=${sources}&days=${filters.days}&score=${filters.score}&telegram_id=${telegramId}`;
+      const url = `/api/leads?q=${q}&keywords=${keywordsParam}&sources=${sources}&days=${filters.days}&score=${filters.score}&telegram_id=${telegramId}`;
 
       const res = await fetch(url);
       const data = await res.json();

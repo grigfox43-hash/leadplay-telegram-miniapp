@@ -5,6 +5,7 @@ const path = require('path');
 const { initDB, all, get, run } = require('./db');
 const { runAllScrapers } = require('./scrapers');
 const { startContinuousMonitoring } = require('./cron');
+const { matchesAnyKeyword, calculateRelevanceScore } = require('./scoring');
 require('./bot'); // initialize Telegram bot if token is configured
 
 const app = express();
@@ -18,15 +19,25 @@ app.use(express.static(path.join(__dirname, '..')));
 
 /**
  * GET /api/leads
- * Retrieves leads filtered by query parameters: q, sources, days, score
+ * Retrieves leads filtered by query parameters: q, keywords, sources, days, score
  */
 app.get('/api/leads', async (req, res) => {
   try {
     const q = (req.query.q || '').toLowerCase();
+    const customKeywords = req.query.keywords || '';
     const sourcesParam = req.query.sources ? req.query.sources.split(',') : [];
     const maxDays = parseInt(req.query.days || '30', 10);
     const minScore = parseInt(req.query.score || '0', 10);
     const telegramId = req.query.telegram_id || 'default_user';
+
+    // If keywords passed, update user profile in DB
+    if (customKeywords) {
+      await run(`
+        INSERT INTO user_profiles (telegram_id, keywords, min_score, max_days, sources, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?)
+        ON CONFLICT(telegram_id) DO UPDATE SET keywords = excluded.keywords, updated_at = excluded.updated_at
+      `, [telegramId, customKeywords, minScore, maxDays, req.query.sources || '', new Date().toISOString()]);
+    }
 
     const rows = await all('SELECT * FROM leads ORDER BY pub_date DESC');
     const userStates = await all('SELECT lead_id, stage FROM lead_states WHERE telegram_id = ?', [telegramId]);
@@ -40,8 +51,12 @@ app.get('/api/leads', async (req, res) => {
       const ageDays = Math.max(0, Math.floor((now - pubTime) / (1000 * 60 * 60 * 24)));
       const tags = JSON.parse(r.tags || '[]');
       
+      // Calculate dynamic score based on user's custom keywords if provided
+      const score = customKeywords ? calculateRelevanceScore(r.title, r.description, tags, customKeywords) : r.score;
+
       return {
         ...r,
+        score,
         age: ageDays,
         tags,
         stage: stateMap[r.id] || null
@@ -55,7 +70,11 @@ app.get('/api/leads', async (req, res) => {
       if (j.age > maxDays) return false;
       // Score filter
       if (j.score < minScore) return false;
-      // Search text query
+      // Check custom keywords (matches ANY keyword in user filter list)
+      if (customKeywords && !matchesAnyKeyword(j.title, j.description, j.tags, customKeywords)) {
+        return false;
+      }
+      // Search text query input
       if (q) {
         const text = (j.title + ' ' + j.description + ' ' + j.tags.join(' ')).toLowerCase();
         if (!text.includes(q)) return false;
@@ -119,7 +138,7 @@ app.get('/api/pipeline', async (req, res) => {
 
 /**
  * POST /api/leads/:id/stage
- * Toggle or set stage for a lead in funnel pipeline (saved, contacted, agreed, hidden)
+ * Toggle or set stage for a lead in funnel pipeline
  */
 app.post('/api/leads/:id/stage', async (req, res) => {
   try {
@@ -127,7 +146,6 @@ app.post('/api/leads/:id/stage', async (req, res) => {
     const { stage, telegram_id = 'default_user', notes = '' } = req.body;
 
     if (!stage) {
-      // Remove state record if stage is null/empty
       await run('DELETE FROM lead_states WHERE telegram_id = ? AND lead_id = ?', [telegram_id, leadId]);
       return res.json({ success: true, stage: null });
     }
@@ -194,7 +212,6 @@ async function startServer() {
     console.log(`🚀 LeadPlay Server running on http://localhost:${PORT}`);
     console.log(`====================================================`);
     
-    // Start continuous background monitoring
     startContinuousMonitoring();
   });
 }
