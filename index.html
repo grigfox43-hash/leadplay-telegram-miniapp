@@ -413,7 +413,7 @@
     </div>
     <div class="search-row">
       <label class="search"><span>⌕</span><input id="search" placeholder="Поиск по заказам..." /></label>
-      <button class="icon-btn" id="filterBtn" aria-label="Фильтры">☷<span class="badge" id="filterBadge">4</span></button>
+      <button class="icon-btn" id="filterBtn" aria-label="Фильтры">☷<span class="badge" id="filterBadge">5</span></button>
     </div>
     <div class="trigger-bar">
       <span id="lastScrapeInfo">Обновление...</span>
@@ -505,7 +505,6 @@
   function initTheme() {
     const savedTheme = localStorage.getItem('leadplay_theme');
     const tgTheme = window.Telegram?.WebApp?.colorScheme;
-    
     let activeTheme = savedTheme || tgTheme || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
     applyTheme(activeTheme);
   }
@@ -521,13 +520,52 @@
     applyTheme(current === 'dark' ? 'light' : 'dark');
   };
 
-  // 2. WINDOW POSITION & SCROLL MEMORY
+  // 2. FILTERS PERSISTENCE (localStorage)
+  let filters = {
+    keywords: 'playable ads, playable, HTML5 banner, interactive ads',
+    sources: ['Telegram', 'Freelancer', 'HeadHunter', 'Habr Freelance', 'Adzuna'],
+    days: 14,
+    score: 65
+  };
+
+  function loadSavedFilters() {
+    const saved = localStorage.getItem('leadplay_saved_filters');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        filters = { ...filters, ...parsed };
+      } catch (e) {}
+    }
+
+    // Populate UI inputs with saved filters
+    document.getElementById('keywords').value = filters.keywords || '';
+    document.getElementById('daysRange').value = filters.days;
+    document.getElementById('daysValue').textContent = filters.days;
+    document.getElementById('scoreRange').value = filters.score;
+    document.getElementById('scoreValue').textContent = filters.score;
+
+    document.querySelectorAll('.check input').forEach(checkbox => {
+      checkbox.checked = filters.sources.includes(checkbox.value);
+    });
+
+    document.getElementById('filterBadge').textContent = filters.sources.length;
+  }
+
+  function saveFiltersUI() {
+    filters.keywords = document.getElementById('keywords').value.trim();
+    filters.days = +document.getElementById('daysRange').value;
+    filters.score = +document.getElementById('scoreRange').value;
+    filters.sources = [...document.querySelectorAll('.check input:checked')].map(x => x.value);
+
+    localStorage.setItem('leadplay_saved_filters', JSON.stringify(filters));
+    document.getElementById('filterBadge').textContent = filters.sources.length;
+  }
+
+  // 3. WINDOW POSITION & SCROLL MEMORY
   function restoreState() {
-    // Restore active tab
     const savedTab = localStorage.getItem('leadplay_active_tab') || 'feed';
     switchTab(savedTab);
 
-    // Restore scroll position
     const savedScroll = localStorage.getItem('leadplay_scroll_pos');
     if (savedScroll) {
       setTimeout(() => window.scrollTo(0, parseInt(savedScroll, 10)), 100);
@@ -540,12 +578,6 @@
 
   let currentLeads = [];
   let currentPipeline = { saved: [], contacted: [], agreed: [], rejected: [] };
-  let filters = {
-    sources: ['Telegram', 'Freelancer', 'HeadHunter', 'Habr Freelance', 'Adzuna'],
-    days: 14,
-    score: 65
-  };
-
   const cardsContainer = document.getElementById('cards');
 
   async function loadStatus() {
@@ -564,7 +596,7 @@
 
   async function loadLeads() {
     try {
-      const q = encodeURIComponent(document.getElementById('search').value || '');
+      const q = encodeURIComponent(document.getElementById('search').value || filters.keywords || '');
       const sources = encodeURIComponent(filters.sources.join(','));
       const url = `/api/leads?q=${q}&sources=${sources}&days=${filters.days}&score=${filters.score}&telegram_id=${telegramId}`;
 
@@ -719,10 +751,7 @@
   document.getElementById('scoreRange').oninput = e => document.getElementById('scoreValue').textContent = e.target.value;
 
   document.getElementById('apply').onclick = () => {
-    filters.days = +document.getElementById('daysRange').value;
-    filters.score = +document.getElementById('scoreRange').value;
-    filters.sources = [...document.querySelectorAll('.check input:checked')].map(x => x.value);
-    document.getElementById('filterBadge').textContent = filters.sources.length;
+    saveFiltersUI();
     wrap.classList.remove('open');
     loadLeads();
   };
@@ -754,16 +783,14 @@
   // Telegram Window Expansion & Event Handlers
   if (window.Telegram?.WebApp) {
     Telegram.WebApp.ready();
-    Telegram.WebApp.expand(); // Expands window to maximum height
+    Telegram.WebApp.expand();
     
-    // Auto-detect Telegram theme changes
     Telegram.WebApp.onEvent('themeChanged', () => {
       if (!localStorage.getItem('leadplay_theme')) {
         applyTheme(Telegram.WebApp.colorScheme || 'light');
       }
     });
 
-    // Listen to Telegram window resize/collapse events
     Telegram.WebApp.onEvent('viewportChanged', (isStateStable) => {
       if (isStateStable) {
         localStorage.setItem('leadplay_window_expanded', Telegram.WebApp.isExpanded ? '1' : '0');
@@ -771,8 +798,9 @@
     });
   }
 
-  // Initialization
+  // Initialization Sequence
   initTheme();
+  loadSavedFilters();
   restoreState();
   loadStatus();
   loadLeads();
