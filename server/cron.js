@@ -2,7 +2,7 @@ const cron = require('node-cron');
 const { runAllScrapers } = require('./scrapers');
 const { notifyUsersAboutNewLeads } = require('./bot');
 
-const intervalMinutes = parseInt(process.env.POLL_INTERVAL_MINUTES || '5', 10);
+const intervalMinutes = parseInt(process.env.POLL_INTERVAL_MINUTES || '10', 10);
 const cronSchedule = `*/${intervalMinutes} * * * *`;
 
 function startContinuousMonitoring() {
@@ -26,7 +26,6 @@ function startContinuousMonitoring() {
       const result = await runAllScrapers();
       if (result.newCount > 0) {
         console.log(`[Cron Scheduler] Found ${result.newCount} new matching leads! Checking notifications...`);
-        // Notify bot subscribers if any new leads were inserted
         const { all } = require('./db');
         const latestLeads = await all('SELECT * FROM leads ORDER BY fetched_at DESC LIMIT ?', [result.newCount]);
         const parsedLeads = latestLeads.map(l => ({ ...l, tags: JSON.parse(l.tags || '[]') }));
