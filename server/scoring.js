@@ -1,79 +1,62 @@
 /**
  * Relevance scoring engine for LeadPlay
- * Evaluates how strongly a lead matches custom user keywords & Playable Ads / HTML5 domain.
+ * Evaluates how strongly a lead matches custom user keywords.
  */
 
-const DEFAULT_KEYWORDS = [
-  'playable',
-  'playable ad',
-  'playable ads',
-  'плейабл',
-  'плейаблы',
-  'интерактивная реклама',
-  'interactive ad',
-  'interactive ads',
-  'html5 banner',
-  'html5-баннер',
-  'html5 баннер',
-  'html5 баннеры',
-  'html5',
-  'canvas',
-  'webgl',
-  'gsap',
-  'pixijs',
-  'phaser',
-  ' mini game',
-  'мини-игра'
-];
+function extractKeywordsList(keywordsStr = '') {
+  if (!keywordsStr || !keywordsStr.trim()) return [];
+  
+  // Split by comma, semicolon, or newlines
+  const rawList = keywordsStr.split(/[,;\n]+/);
+  const keywords = [];
+
+  rawList.forEach(item => {
+    const trimmed = item.trim().toLowerCase();
+    if (trimmed.length > 0) {
+      keywords.push(trimmed);
+      // Also add individual words if user typed multi-word phrases
+      const words = trimmed.split(/\s+/).filter(w => w.length > 2);
+      words.forEach(w => {
+        if (!keywords.includes(w)) keywords.push(w);
+      });
+    }
+  });
+
+  return keywords;
+}
 
 function calculateRelevanceScore(title = '', description = '', tags = [], customKeywordsStr = '') {
   const fullText = (title + ' ' + description + ' ' + (Array.isArray(tags) ? tags.join(' ') : tags)).toLowerCase();
-  
-  let score = 50;
+  const userKeywords = extractKeywordsList(customKeywordsStr);
 
-  // Extract custom user keywords if provided (split by comma or newline)
-  let userKeywords = [];
-  if (customKeywordsStr && customKeywordsStr.trim()) {
-    userKeywords = customKeywordsStr
-      .split(/[,;\n]+/)
-      .map(k => k.trim().toLowerCase())
-      .filter(k => k.length > 1);
+  if (userKeywords.length === 0) {
+    return 85; // Base high score when no filter keywords specified
   }
 
-  const activeKeywords = userKeywords.length > 0 ? userKeywords : DEFAULT_KEYWORDS;
-
   let matchesCount = 0;
-  activeKeywords.forEach(kw => {
+  userKeywords.forEach(kw => {
     if (fullText.includes(kw)) {
       matchesCount++;
     }
   });
 
   if (matchesCount > 0) {
-    score += Math.min(45, 20 + matchesCount * 10);
+    return Math.min(99, 70 + matchesCount * 10);
   }
 
-  // Bonus for match in title
-  const titleLower = title.toLowerCase();
-  if (activeKeywords.some(kw => titleLower.includes(kw))) {
-    score += 10;
-  }
-
-  return Math.min(99, Math.max(50, score));
+  return 50;
 }
 
 /**
  * Checks if a lead matches ANY of the user's custom keywords
  */
 function matchesAnyKeyword(title = '', description = '', tags = [], keywordsStr = '') {
-  if (!keywordsStr || !keywordsStr.trim()) return true;
+  const userKeywords = extractKeywordsList(keywordsStr);
+  if (userKeywords.length === 0) return true;
 
   const fullText = (title + ' ' + description + ' ' + (Array.isArray(tags) ? tags.join(' ') : tags)).toLowerCase();
-  const list = keywordsStr.split(/[,;\n]+/).map(k => k.trim().toLowerCase()).filter(k => k.length > 0);
-
-  if (list.length === 0) return true;
-
-  return list.some(kw => fullText.includes(kw));
+  
+  return userKeywords.some(kw => fullText.includes(kw));
 }
 
 function extractTags(text = '') {

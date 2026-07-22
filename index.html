@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#ffffff" />
-  <title>LeadPlay — заказы на playable и HTML5</title>
+  <title>LeadPlay — Мониторинг заказов</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root {
@@ -423,7 +423,7 @@
           <h1>LeadPlay</h1>
           <div class="live"><i class="dot"></i> Поиск 24/7</div>
         </div>
-        <p>Мониторинг заказов Playable & HTML5</p>
+        <p>Мониторинг заказов</p>
       </div>
       <div class="header-actions">
         <button class="theme-toggle" id="themeToggle" title="Переключить тему">🌙</button>
@@ -484,7 +484,7 @@
     <p class="hint">Укажите любые ключевые слова через запятую.</p>
     
     <div class="label">Ключевые слова</div>
-    <input class="field" id="keywords" value="playable ads, playable, HTML5 banner, interactive ads" placeholder="Например: playable, html5, unity, python" />
+    <input class="field" id="keywords" value="" placeholder="Оставьте пустым для показа всех заказов или укажите: playable, html5, dev" />
     
     <div class="label">Площадки</div>
     <div class="checks">
@@ -503,8 +503,8 @@
     
     <div class="label">Минимальная релевантность</div>
     <div class="range-row">
-      <input type="range" min="50" max="100" value="65" id="scoreRange">
-      <div class="days"><span id="scoreValue">65</span>%</div>
+      <input type="range" min="50" max="100" value="55" id="scoreRange">
+      <div class="days"><span id="scoreValue">55</span>%</div>
     </div>
     
     <button class="apply" id="apply">Применить фильтры</button>
@@ -558,10 +558,10 @@
 
   // 2. FILTERS PERSISTENCE
   let filters = {
-    keywords: 'playable ads, playable, HTML5 banner, interactive ads',
+    keywords: '',
     sources: ['Telegram', 'Freelancer', 'HeadHunter', 'Habr Freelance', 'Adzuna'],
     days: 14,
-    score: 65
+    score: 55
   };
 
   function loadSavedFilters() {
