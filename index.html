@@ -42,8 +42,11 @@
     }
 
     * { box-sizing: border-box; }
-    body {
+    html, body {
       margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
       background: var(--bg);
       color: var(--text);
       font: 15px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -57,6 +60,7 @@
       margin: auto;
       min-height: 100vh;
       padding-bottom: 92px;
+      position: relative;
     }
     .top {
       position: sticky;
@@ -415,7 +419,7 @@
   </style>
 </head>
 <body>
-<div class="app">
+<div class="app" id="appRoot">
   <header class="top">
     <div class="brand">
       <div class="mark">LP</div>
@@ -574,7 +578,7 @@
     document.getElementById('filterBadge').textContent = filters.sources.length;
   }
 
-  // 3. WINDOW POSITION & SCROLL POSITION PERSISTENCE
+  // 3. WINDOW GEOMETRY & SCROLL POSITION PERSISTENCE
   let isInitialScrollRestored = false;
 
   function restoreState() {
@@ -597,6 +601,12 @@
       localStorage.setItem('leadplay_scroll_pos', String(window.scrollY));
     }
   }, { passive: true });
+
+  // Save window dimensions when resized
+  window.addEventListener('resize', () => {
+    localStorage.setItem('leadplay_win_w', String(window.innerWidth));
+    localStorage.setItem('leadplay_win_h', String(window.innerHeight));
+  });
 
   let currentLeads = [];
   let currentPipeline = { saved: [], contacted: [], agreed: [], rejected: [] };
@@ -818,9 +828,16 @@
       .replace(/"/g, '&quot;');
   }
 
-  // Telegram Window Handlers
+  // Telegram Window Handlers & Position Geometry Sync
   if (window.Telegram?.WebApp) {
     Telegram.WebApp.ready();
+    
+    // Save viewport height state when changed
+    Telegram.WebApp.onEvent('viewportChanged', () => {
+      if (Telegram.WebApp.viewportHeight) {
+        localStorage.setItem('leadplay_vp_height', String(Telegram.WebApp.viewportHeight));
+      }
+    });
   }
 
   // Initialization Sequence
