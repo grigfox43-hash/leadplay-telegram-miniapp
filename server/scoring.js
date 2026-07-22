@@ -1,5 +1,5 @@
 /**
- * Relevance scoring and contact extraction engine for LeadPlay
+ * Relevance scoring and comprehensive contact extraction engine for LeadPlay
  */
 
 function extractKeywordsList(keywordsStr = '') {
@@ -74,44 +74,57 @@ function extractTags(text = '') {
 }
 
 /**
- * Extracts customer contact info (Telegram handles, emails, phone numbers) from order text
+ * Comprehensive contact extractor: Telegram, Email, Phone, WhatsApp, VK, Skype
  */
 function extractContacts(text = '') {
   if (!text) return '';
   const contacts = new Set();
 
-  // Telegram handles (@username or t.me/username)
-  const tgMatches = text.match(/(?:^|\s)(@[a-zA-Z0-9_]{4,32})/g);
+  // Telegram handles (@username)
+  const tgMatches = text.match(/(?:^|[\s,.:;()\/])(@[a-zA-Z0-9_]{4,32})/g);
   if (tgMatches) {
     tgMatches.forEach(m => {
-      const handle = m.trim();
+      const handle = m.trim().replace(/^[\s,.:;()\/]+/, '');
       const lower = handle.toLowerCase();
-      // Ignore system channel names
-      if (!lower.includes('@freelance') && !lower.includes('@gamedev') && !lower.includes('@webdev') && !lower.includes('@remote') && !lower.includes('@normjob')) {
+      if (!lower.includes('@freelance') && !lower.includes('@gamedev') && !lower.includes('@webdev') && !lower.includes('@remote') && !lower.includes('@normjob') && !lower.includes('@it_job') && !lower.includes('@findervc')) {
         contacts.add(handle);
       }
     });
   }
 
-  // Telegram t.me/links
-  const tmeMatches = text.match(/t\.me\/([a-zA-Z0-9_]{4,32})/g);
+  // Telegram links (t.me/username or telegram.me/username)
+  const tmeMatches = text.match(/(?:t\.me|telegram\.me)\/([a-zA-Z0-9_]{4,32})/gi);
   if (tmeMatches) {
     tmeMatches.forEach(m => {
-      const username = '@' + m.replace('t.me/', '');
-      contacts.add(username);
+      const username = '@' + m.split('/').pop();
+      const lower = username.toLowerCase();
+      if (!lower.includes('@freelance') && !lower.includes('@gamedev') && !lower.includes('@webdev') && !lower.includes('@remote')) {
+        contacts.add(username);
+      }
     });
   }
 
   // Email addresses
-  const emailMatches = text.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g);
+  const emailMatches = text.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/gi);
   if (emailMatches) {
     emailMatches.forEach(e => contacts.add(e.trim()));
   }
 
-  // Phone numbers
-  const phoneMatches = text.match(/(\+?[78][\s\-\.]?\(?\d{3}\)?[\s\-\.]?\d{3}[\s\-\.]?\d{2}[\s\-\.]?\d{2})/g);
+  // Phone numbers (RU, CIS, International)
+  const phoneMatches = text.match(/(\+?[7831]\d{1,3}[\s\-\.]?\(?\d{2,4}\)?[\s\-\.]?\d{2,4}[\s\-\.]?\d{2,4}[\s\-\.]?\d{0,4})/g);
   if (phoneMatches) {
-    phoneMatches.forEach(p => contacts.add(p.trim()));
+    phoneMatches.forEach(p => {
+      const clean = p.trim();
+      if (clean.replace(/\D/g, '').length >= 10) {
+        contacts.add(clean);
+      }
+    });
+  }
+
+  // WhatsApp / Skype / VK links
+  const waMatches = text.match(/(?:wa\.me|whatsapp|vk\.com)\/([a-zA-Z0-9_.-]+)/gi);
+  if (waMatches) {
+    waMatches.forEach(m => contacts.add(m.trim()));
   }
 
   return Array.from(contacts).join(' · ');

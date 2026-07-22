@@ -210,7 +210,8 @@
     .section-title { display: flex; align-items: center; margin: 15px 1px 9px; }
     .section-title h2 { margin: 0; font-size: 15px; }
     .section-title span { margin-left: auto; color: var(--muted); font-size: 12px; }
-    .cards { display: grid; gap: 10px; }
+    .cards { display: grid; gap: 10px; transition: all 0.3s; }
+    
     .card {
       background: var(--surface);
       border: 1px solid var(--line);
@@ -218,8 +219,24 @@
       padding: 14px;
       box-shadow: var(--shadow);
       position: relative;
-      transition: transform 0.2s, opacity 0.2s;
+      transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1), transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), padding 0.35s, margin 0.35s, border-width 0.35s;
+      max-height: 500px;
+      opacity: 1;
+      overflow: hidden;
+      transform: scale(1) translateY(0);
     }
+    
+    .card.hiding {
+      opacity: 0;
+      transform: scale(0.92) translateY(-12px);
+      max-height: 0;
+      padding-top: 0;
+      padding-bottom: 0;
+      margin-top: 0;
+      margin-bottom: -10px;
+      border-width: 0;
+    }
+
     .card-head { display: flex; gap: 10px; align-items: flex-start; }
     
     .source-icon {
@@ -813,12 +830,11 @@
   async function hideLead(leadId) {
     const cardEl = document.getElementById(`card_${leadId}`);
     if (cardEl) {
-      cardEl.style.transform = 'scale(0.95)';
-      cardEl.style.opacity = '0';
+      cardEl.classList.add('hiding');
     }
     setTimeout(async () => {
       await updateStage(leadId, 'hidden');
-    }, 200);
+    }, 360);
   }
 
   async function toggleSave(leadId, currentStage) {
