@@ -438,7 +438,7 @@
     </div>
     <div class="search-row">
       <label class="search"><span>⌕</span><input id="search" placeholder="Поиск по заказам..." /></label>
-      <button class="icon-btn" id="filterBtn" aria-label="Фильтры">☷<span class="badge" id="filterBadge">7</span></button>
+      <button class="icon-btn" id="filterBtn" aria-label="Фильтры">☷<span class="badge" id="filterBadge">11</span></button>
     </div>
     <div class="trigger-bar">
       <span id="lastScrapeInfo">Обновление...</span>
@@ -493,13 +493,22 @@
     <div class="label">Ключевые слова</div>
     <input class="field" id="keywords" value="" placeholder="Оставьте пустым для показа всех заказов или укажите: playable, html5, dev" />
     
-    <div class="label">Площадки</div>
+    <div class="label">Российские и СНГ площадки</div>
     <div class="checks">
       <label class="check"><input type="checkbox" value="Telegram" checked>Telegram (Каналы)</label>
       <label class="check"><input type="checkbox" value="FL.ru" checked>FL.ru</label>
       <label class="check"><input type="checkbox" value="Freelance.ru" checked>Freelance.ru</label>
       <label class="check"><input type="checkbox" value="Habr Freelance" checked>Habr Freelance</label>
       <label class="check"><input type="checkbox" value="HeadHunter" checked>HeadHunter</label>
+    </div>
+
+    <div class="label">Зарубежные (Global) биржи</div>
+    <div class="checks">
+      <label class="check"><input type="checkbox" value="Upwork" checked>Upwork</label>
+      <label class="check"><input type="checkbox" value="Fiverr" checked>Fiverr</label>
+      <label class="check"><input type="checkbox" value="Guru.com" checked>Guru.com</label>
+      <label class="check"><input type="checkbox" value="Remotive" checked>Remotive</label>
+      <label class="check"><input type="checkbox" value="WeWorkRemotely" checked>WeWorkRemotely</label>
       <label class="check"><input type="checkbox" value="Freelancer" checked>Freelancer.com</label>
       <label class="check"><input type="checkbox" value="Adzuna" checked>Adzuna</label>
     </div>
@@ -534,6 +543,11 @@
     'Freelancer': `<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#0086E6"/><path d="M12 5l-7 4.5 7 4.5 7-4.5L12 5zm-5 6.5v4l5 3 5-3v-4l-5 3-5-3z" fill="#fff"/></svg>`,
     'HeadHunter': `<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#E10915"/><text x="12" y="16" font-size="12" font-weight="900" text-anchor="middle" fill="#fff" font-family="sans-serif">hh</text></svg>`,
     'Habr Freelance': `<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#65a3be"/><text x="12" y="16" font-size="11" font-weight="900" text-anchor="middle" fill="#fff" font-family="sans-serif">HB</text></svg>`,
+    'Upwork': `<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#14a800"/><text x="12" y="16" font-size="11" font-weight="900" text-anchor="middle" fill="#fff" font-family="sans-serif">UP</text></svg>`,
+    'Fiverr': `<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#1dbf73"/><text x="12" y="16" font-size="11" font-weight="900" text-anchor="middle" fill="#fff" font-family="sans-serif">FVR</text></svg>`,
+    'Guru.com': `<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#3665ad"/><text x="12" y="16" font-size="10" font-weight="900" text-anchor="middle" fill="#fff" font-family="sans-serif">GURU</text></svg>`,
+    'Remotive': `<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#4f46e5"/><text x="12" y="16" font-size="11" font-weight="900" text-anchor="middle" fill="#fff" font-family="sans-serif">REM</text></svg>`,
+    'WeWorkRemotely': `<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#e74c3c"/><text x="12" y="16" font-size="10" font-weight="900" text-anchor="middle" fill="#fff" font-family="sans-serif">WWR</text></svg>`,
     'Adzuna': `<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#27ae60"/><text x="12" y="16" font-size="11" font-weight="900" text-anchor="middle" fill="#fff" font-family="sans-serif">AZ</text></svg>`
   };
 
@@ -545,6 +559,11 @@
     if (s.includes('freelancer')) return PLATFORM_ICONS['Freelancer'];
     if (s.includes('headhunter') || s.includes('hh')) return PLATFORM_ICONS['HeadHunter'];
     if (s.includes('habr') || s.includes('hb')) return PLATFORM_ICONS['Habr Freelance'];
+    if (s.includes('upwork') || s.includes('upw')) return PLATFORM_ICONS['Upwork'];
+    if (s.includes('fiverr') || s.includes('fvr')) return PLATFORM_ICONS['Fiverr'];
+    if (s.includes('guru')) return PLATFORM_ICONS['Guru.com'];
+    if (s.includes('remotive') || s.includes('rem')) return PLATFORM_ICONS['Remotive'];
+    if (s.includes('weworkremotely') || s.includes('wwr')) return PLATFORM_ICONS['WeWorkRemotely'];
     if (s.includes('adzuna') || s.includes('az')) return PLATFORM_ICONS['Adzuna'];
     return PLATFORM_ICONS['Telegram'];
   }
@@ -573,7 +592,7 @@
   // 2. FILTERS PERSISTENCE
   let filters = {
     keywords: '',
-    sources: ['Telegram', 'FL.ru', 'Freelance.ru', 'Habr Freelance', 'HeadHunter', 'Freelancer', 'Adzuna'],
+    sources: ['Telegram', 'FL.ru', 'Freelance.ru', 'Habr Freelance', 'HeadHunter', 'Upwork', 'Fiverr', 'Guru.com', 'Remotive', 'WeWorkRemotely', 'Freelancer', 'Adzuna'],
     days: 14,
     score: 55
   };

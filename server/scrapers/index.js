@@ -3,9 +3,10 @@ const fetchHeadHunterLeads = require('./headhunter');
 const fetchFreelancerLeads = require('./freelancer');
 const fetchTelegramLeads = require('./telegram_feed');
 const fetchRussianFreelanceLeads = require('./fl_ru');
+const fetchGlobalLeads = require('./global_freelance');
 const { run, all, get } = require('../db');
 
-// Seed leads focused on Russian orders
+// Seed leads focused on Russian and Global orders
 const SEED_LEADS = [
   {
     external_id: 'seed_ru_1',
@@ -36,6 +37,20 @@ const SEED_LEADS = [
     pub_date: new Date(Date.now() - 3600 * 1000 * 3).toISOString()
   },
   {
+    external_id: 'seed_global_1',
+    title: 'Senior Playable Ads Developer (Unity / PixiJS)',
+    description: 'Looking for an experienced Playable Ads Developer to build high-converting playable ads for iOS and Android game titles. Remote contract.',
+    budget: '$3,500 - $6,000 / mo',
+    currency: 'USD',
+    url: 'https://www.upwork.com',
+    source: 'Upwork',
+    source_code: 'UPW',
+    cls: 'global',
+    tags: ['Playable', 'PixiJS', 'Unity'],
+    score: 95,
+    pub_date: new Date(Date.now() - 3600 * 1000 * 4).toISOString()
+  },
+  {
     external_id: 'seed_ru_3',
     title: 'Верстка интерактивного промо-сайта и мини-игры',
     description: 'Требуется фронтенд разработчик для создания интерактивной промо-страницы с мини-игрой на JS Canvas. Готовые макеты в Figma.',
@@ -64,30 +79,31 @@ const SEED_LEADS = [
     pub_date: new Date(Date.now() - 3600 * 1000 * 8).toISOString()
   },
   {
-    external_id: 'seed_ru_5',
-    title: 'Разработка Telegram бота и фриланс интеграция',
-    description: 'Ищем разрабтчика на Node.js / Python для настройки и доработки Telegram бота с приемом платежей и Web App.',
-    budget: '50 000–80 000 ₽',
-    currency: 'RUB',
-    url: 'https://freelance.ru',
-    source: 'Freelance.ru',
-    source_code: 'FR_RU',
-    cls: 'tg',
-    tags: ['Telegram Bot', 'Node.js', 'Web App'],
-    score: 83,
-    pub_date: new Date(Date.now() - 3600 * 1000 * 12).toISOString()
+    external_id: 'seed_global_2',
+    title: 'Fiverr Pro HTML5 Banner Creator & Animator',
+    description: 'Create interactive HTML5 banners with custom GSAP animations for international digital marketing campaigns.',
+    budget: '$1,200 / project',
+    currency: 'USD',
+    url: 'https://www.fiverr.com',
+    source: 'Fiverr',
+    source_code: 'FVR',
+    cls: 'global',
+    tags: ['Fiverr', 'HTML5', 'GSAP'],
+    score: 87,
+    pub_date: new Date(Date.now() - 3600 * 1000 * 10).toISOString()
   }
 ];
 
 async function runAllScrapers() {
-  console.log('[Scraper Engine] Starting order search across all Russian sources...');
+  console.log('[Scraper Engine] Starting order search across Russian & Global sources...');
   
   const results = await Promise.allSettled([
     fetchHabrLeads(),
     fetchHeadHunterLeads(),
     fetchFreelancerLeads(),
     fetchTelegramLeads(),
-    fetchRussianFreelanceLeads()
+    fetchRussianFreelanceLeads(),
+    fetchGlobalLeads()
   ]);
 
   let allLeads = [];
@@ -99,7 +115,6 @@ async function runAllScrapers() {
 
   console.log(`[Scraper Engine] Live scrapers retrieved ${allLeads.length} leads.`);
 
-  // Append curated Russian SEED_LEADS
   allLeads.push(...SEED_LEADS);
 
   let newCount = 0;
