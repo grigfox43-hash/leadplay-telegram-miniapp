@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#ffffff" />
+  <title>LeadPlay — заказы на playable и HTML5</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    :root{--bg:#f6f7f8;--surface:#fff;--text:#202124;--muted:#71757a;--line:#e7e8ea;--blue:#2783de;--blue-soft:#eaf4fd;--green:#21875a;--green-soft:#e8f4ee;--orange:#b86823;--orange-soft:#fff1e5;--red:#c84b42;--shadow:0 1px 2px rgba(0,0,0,.04),0 8px 24px rgba(0,0,0,.05);--r:14px}
+    *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif} button,input{font:inherit} button{cursor:pointer}
+    .app{max-width:520px;margin:auto;min-height:100vh;padding-bottom:92px}.top{position:sticky;top:0;z-index:20;padding:12px 16px 10px;background:rgba(246,247,248,.92);backdrop-filter:blur(18px);border-bottom:1px solid rgba(231,232,234,.8)}
+    .brand{display:flex;align-items:center;gap:10px}.mark{width:38px;height:38px;border-radius:11px;background:#202124;color:#fff;display:grid;place-items:center;font-weight:800;letter-spacing:-1px}.brand h1{font-size:19px;margin:0;letter-spacing:-.3px}.brand p{margin:1px 0 0;color:var(--muted);font-size:13px}.live{margin-left:auto;display:flex;align-items:center;gap:6px;color:var(--green);font-size:11px;font-weight:700;background:var(--green-soft);padding:4px 8px;border-radius:20px}.dot{width:7px;height:7px;border-radius:50%;background:#2aa66e;box-shadow:0 0 0 4px var(--green-soft);animation:pulse 2s infinite}
+    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+    .search-row{display:flex;gap:8px;margin-top:12px}.search{height:46px;flex:1;border:1px solid var(--line);border-radius:12px;background:var(--surface);display:flex;align-items:center;padding:0 13px;gap:9px}.search input{min-width:0;width:100%;border:0;outline:0;background:transparent;color:var(--text)}.icon-btn{width:46px;height:46px;border:1px solid var(--line);border-radius:12px;background:var(--surface);display:grid;place-items:center;position:relative}.badge{position:absolute;right:-3px;top:-4px;background:var(--blue);color:#fff;min-width:19px;height:19px;border-radius:10px;padding:0 5px;display:grid;place-items:center;font-size:11px;border:2px solid var(--bg)}
+    .trigger-bar{display:flex;justify-content:space-between;align-items:center;margin:12px 0 4px;font-size:12px;color:var(--muted)}
+    .btn-trigger{background:var(--blue-soft);color:var(--blue);border:1px solid rgba(39,131,222,0.2);padding:6px 11px;border-radius:9px;font-weight:700;font-size:12px;display:flex;align-items:center;gap:5px}
+    main{padding:14px 16px}.summary{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px}.metric{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:11px}.metric b{display:block;font-size:19px}.metric span{font-size:11px;color:var(--muted)}
+    .section-title{display:flex;align-items:center;margin:15px 1px 9px}.section-title h2{margin:0;font-size:15px}.section-title span{margin-left:auto;color:var(--muted);font-size:12px}.cards{display:grid;gap:10px}.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px;box-shadow:0 1px 1px rgba(0,0,0,.02)}.card-head{display:flex;gap:10px;align-items:flex-start}.source{width:38px;height:38px;flex:0 0 auto;border-radius:10px;display:grid;place-items:center;font-weight:800;font-size:12px;background:#f0efed}.source.tg{background:#e7f3fc;color:#1877bd}.source.fr{background:#edf6ff;color:#1477bd}.source.hh{background:#ffeceb;color:#c3342b}.source.az{background:#eef8ef;color:#258a4a}.title{font-size:15px;font-weight:750;line-height:1.3;margin-right:8px}.meta{color:var(--muted);font-size:12px;margin-top:4px}.score{margin-left:auto;flex:0 0 auto;background:var(--green-soft);color:var(--green);border-radius:8px;padding:4px 6px;font-size:11px;font-weight:800}.desc{color:#484b4f;margin:11px 0 10px;font-size:13px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}.tags{display:flex;flex-wrap:wrap;gap:6px}.tag{background:#f2f3f4;border-radius:7px;padding:4px 7px;font-size:11px;color:#55595d}.budget{font-weight:800;font-size:14px;margin-top:12px}.actions{display:flex;gap:8px;margin-top:12px}.btn{height:40px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--text);padding:0 13px;font-weight:700}.btn.primary{background:var(--blue);border-color:var(--blue);color:#fff;flex:1;text-decoration:none;display:grid;place-items:center;font-size:14px}.btn.saved{background:var(--green-soft);border-color:#cce5d8;color:var(--green)}
+    .empty{display:none;text-align:center;padding:48px 24px;color:var(--muted)}
+    .nav{position:fixed;z-index:30;bottom:0;left:50%;transform:translateX(-50%);width:min(520px,100%);height:76px;padding:8px 12px calc(8px + env(safe-area-inset-bottom));background:rgba(255,255,255,.96);backdrop-filter:blur(18px);border-top:1px solid var(--line);display:flex;justify-content:space-around}.nav button{border:0;background:transparent;color:var(--muted);min-width:72px;border-radius:10px;font-size:11px}.nav button b{display:block;font-size:20px;line-height:24px}.nav button.active{color:var(--blue);background:var(--blue-soft)}
+    .sheet-wrap{position:fixed;inset:0;z-index:60;background:rgba(20,22,24,.35);display:none;align-items:flex-end}.sheet-wrap.open{display:flex}.sheet{width:min(520px,100%);margin:auto;background:var(--surface);border-radius:22px 22px 0 0;padding:10px 18px calc(22px + env(safe-area-inset-bottom));max-height:90vh;overflow:auto}.handle{width:40px;height:4px;border-radius:2px;background:#d9dadd;margin:0 auto 14px}.sheet h2{margin:0 0 4px;font-size:20px}.hint{color:var(--muted);font-size:13px;margin:0 0 18px}.label{font-weight:750;margin:16px 0 8px}.field{width:100%;min-height:46px;border:1px solid var(--line);border-radius:11px;padding:11px 12px;outline:none}.checks{display:grid;grid-template-columns:1fr 1fr;gap:8px}.check{border:1px solid var(--line);border-radius:10px;padding:11px;display:flex;align-items:center;gap:8px}.check input{accent-color:var(--blue)}.range-row{display:flex;align-items:center;gap:12px}.range-row input{width:100%;accent-color:var(--blue)}.days{min-width:58px;text-align:center;padding:8px;border-radius:9px;background:var(--blue-soft);color:var(--blue);font-weight:800}.apply{width:100%;height:48px;border:0;border-radius:12px;background:var(--blue);color:#fff;font-weight:800;margin-top:20px}
+    .pipeline{display:none}.columns{display:grid;grid-template-columns:1fr;gap:12px}.column{background:#eef0f2;border-radius:14px;padding:12px}.column h3{font-size:13px;margin:2px 3px 9px;display:flex;justify-content:space-between}.lead{background:#fff;border:1px solid var(--line);border-radius:10px;padding:11px;margin-top:7px;display:flex;flex-direction:column;gap:6px}.lead b{font-size:13px}.lead span{font-size:11px;color:var(--muted)}.stage-btns{display:flex;gap:6px;margin-top:4px}.stage-btn{flex:1;padding:5px;font-size:11px;border-radius:6px;border:1px solid var(--line);background:var(--bg);font-weight:600}
+    @media(prefers-color-scheme:dark){:root{--bg:#191919;--surface:#222;--text:#fff;--muted:rgba(255,255,255,.62);--line:rgba(255,255,255,.16);--blue:#5e9fe8;--blue-soft:rgba(94,159,232,.14);--green:#72bc8f;--green-soft:rgba(114,188,143,.14)}.top{background:rgba(25,25,25,.92)}.search input,.btn{color:var(--text)}.desc{color:rgba(255,255,255,.78)}.tag,.source{background:#343434;color:rgba(255,255,255,.8)}.nav{background:rgba(31,31,31,.96)}.column{background:#181818}.lead{background:#252525}.check,.field{background:#222;color:#fff}}
+  </style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <div class="mark">LP</div>
+      <div><h1>LeadPlay</h1><p>Мониторинг заказов Playable & HTML5</p></div>
+      <div class="live"><i class="dot"></i> Поиск 24/7</div>
+    </div>
+    <div class="search-row">
+      <label class="search"><span>⌕</span><input id="search" placeholder="Поиск по заказам..." /></label>
+      <button class="icon-btn" id="filterBtn" aria-label="Фильтры">☷<span class="badge" id="filterBadge">4</span></button>
+    </div>
+    <div class="trigger-bar">
+      <span id="lastScrapeInfo">Обновление...</span>
+      <button class="btn-trigger" id="triggerSearchBtn">⚡ Искать сейчас</button>
+    </div>
+  </header>
+
+  <main>
+    <section id="feed">
+      <div class="summary">
+        <div class="metric"><b id="foundCount">0</b><span>найдено</span></div>
+        <div class="metric"><b id="newTodayCount">0</b><span>новых</span></div>
+        <div class="metric"><b id="savedCount">0</b><span>в работе</span></div>
+      </div>
+      <div class="section-title"><h2>Живая лента заказов</h2><span>автообновление</span></div>
+      <div class="cards" id="cards"></div>
+      <div class="empty" id="empty">Ничего не найдено.<br>Измените ключевые слова или запустите поиск.</div>
+    </section>
+
+    <section class="pipeline" id="pipeline">
+      <div class="section-title"><h2>Воронка заказов</h2><span>синхронизация с ботом</span></div>
+      <div class="columns">
+        <div class="column">
+          <h3>📌 Сохранено · <span id="pSaved">0</span></h3>
+          <div id="savedLeads"></div>
+        </div>
+        <div class="column">
+          <h3>💬 Связались · <span id="pContacted">0</span></h3>
+          <div id="contactedLeads"></div>
+        </div>
+        <div class="column">
+          <h3>🤝 Договорились · <span id="pAgreed">0</span></h3>
+          <div id="agreedLeads"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <nav class="nav">
+    <button class="active" data-tab="feed"><b>⌂</b>Лента</button>
+    <button data-tab="pipeline"><b>▥</b>Воронка</button>
+    <button id="navFilter"><b>☷</b>Фильтры</button>
+  </nav>
+</div>
+
+<div class="sheet-wrap" id="sheetWrap">
+  <div class="sheet">
+    <div class="handle"></div>
+    <h2>Фильтры поиска</h2>
+    <p class="hint">Настройки применяются ко всем источникам в реальном времени.</p>
+    
+    <div class="label">Ключевые слова</div>
+    <input class="field" id="keywords" value="playable ads, playable, HTML5 banner, interactive ads" />
+    
+    <div class="label">Площадки</div>
+    <div class="checks">
+      <label class="check"><input type="checkbox" value="Telegram" checked>Telegram</label>
+      <label class="check"><input type="checkbox" value="Freelancer" checked>Freelancer</label>
+      <label class="check"><input type="checkbox" value="HeadHunter" checked>HeadHunter</label>
+      <label class="check"><input type="checkbox" value="Habr Freelance" checked>Habr Freelance</label>
+      <label class="check"><input type="checkbox" value="Adzuna" checked>Adzuna</label>
+    </div>
+    
+    <div class="label">Не старше</div>
+    <div class="range-row">
+      <input type="range" min="1" max="30" value="14" id="daysRange">
+      <div class="days"><span id="daysValue">14</span> дн.</div>
+    </div>
+    
+    <div class="label">Минимальная релевантность</div>
+    <div class="range-row">
+      <input type="range" min="50" max="100" value="65" id="scoreRange">
+      <div class="days"><span id="scoreValue">65</span>%</div>
+    </div>
+    
+    <button class="apply" id="apply">Применить фильтры</button>
+  </div>
+</div>
+
+<script>
+  // Detect Telegram WebApp Context
+  const telegramId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id 
+    ? String(window.Telegram.WebApp.initDataUnsafe.user.id)
+    : 'default_user';
+
+  let currentLeads = [];
+  let currentPipeline = { saved: [], contacted: [], agreed: [], rejected: [] };
+  let filters = {
+    sources: ['Telegram', 'Freelancer', 'HeadHunter', 'Habr Freelance', 'Adzuna'],
+    days: 14,
+    score: 65
+  };
+
+  const cardsContainer = document.getElementById('cards');
+
+  async function loadStatus() {
+    try {
+      const res = await fetch('/api/status');
+      const data = await res.json();
+      if (data.last_scrape_at) {
+        const lastDate = new Date(data.last_scrape_at);
+        const minsAgo = Math.round((Date.now() - lastDate.getTime()) / 60000);
+        document.getElementById('lastScrapeInfo').textContent = minsAgo <= 1 ? 'Проверено только что' : `Проверено ${minsAgo} мин. назад`;
+      }
+    } catch (e) {
+      document.getElementById('lastScrapeInfo').textContent = 'Сервер онлайн';
+    }
+  }
+
+  async function loadLeads() {
+    try {
+      const q = encodeURIComponent(document.getElementById('search').value || '');
+      const sources = encodeURIComponent(filters.sources.join(','));
+      const url = `/api/leads?q=${q}&sources=${sources}&days=${filters.days}&score=${filters.score}&telegram_id=${telegramId}`;
+
+      const res = await fetch(url);
+      const data = await res.json();
+
+      if (data.success) {
+        currentLeads = data.leads;
+        renderFeed();
+      }
+    } catch (e) {
+      console.error('Failed to fetch leads:', e);
+    }
+  }
+
+  async function loadPipeline() {
+    try {
+      const res = await fetch(`/api/pipeline?telegram_id=${telegramId}`);
+      const data = await res.json();
+      if (data.success) {
+        currentPipeline = data.pipeline;
+        renderPipeline();
+      }
+    } catch (e) {
+      console.error('Failed to fetch pipeline:', e);
+    }
+  }
+
+  function renderFeed() {
+    document.getElementById('foundCount').textContent = currentLeads.length;
+    const newToday = currentLeads.filter(j => j.age === 0).length;
+    document.getElementById('newTodayCount').textContent = newToday;
+
+    if (currentLeads.length === 0) {
+      cardsContainer.innerHTML = '';
+      document.getElementById('empty').style.display = 'block';
+      return;
+    }
+
+    document.getElementById('empty').style.display = 'none';
+
+    cardsContainer.innerHTML = currentLeads.map(j => {
+      const isSaved = j.stage === 'saved' || j.stage === 'contacted' || j.stage === 'agreed';
+      const ageStr = j.age === 0 ? 'сегодня' : `${j.age} дн. назад`;
+
+      return `
+        <article class="card">
+          <div class="card-head">
+            <div class="source ${j.cls || 'tg'}">${j.source_code || 'LP'}</div>
+            <div>
+              <div class="title">${escapeHtml(j.title)}</div>
+              <div class="meta">${escapeHtml(j.source)} · ${ageStr}</div>
+            </div>
+            <div class="score">${j.score}%</div>
+          </div>
+          <p class="desc">${escapeHtml(j.description)}</p>
+          <div class="tags">
+            ${(j.tags || []).map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('')}
+          </div>
+          <div class="budget">${escapeHtml(j.budget || 'Договорная')}</div>
+          <div class="actions">
+            <a href="${escapeHtml(j.url)}" target="_blank" rel="noopener" class="btn primary">Открыть заказ ↗</a>
+            <button class="btn ${isSaved ? 'saved' : ''}" onclick="toggleSave('${j.id}', '${j.stage}')">
+              ${isSaved ? '✓ В работе' : 'В воронку'}
+            </button>
+          </div>
+        </article>
+      `;
+    }).join('');
+  }
+
+  function renderPipeline() {
+    const saved = currentPipeline.saved || [];
+    const contacted = currentPipeline.contacted || [];
+    const agreed = currentPipeline.agreed || [];
+
+    const totalSaved = saved.length + contacted.length + agreed.length;
+    document.getElementById('savedCount').textContent = totalSaved;
+
+    document.getElementById('pSaved').textContent = saved.length;
+    document.getElementById('pContacted').textContent = contacted.length;
+    document.getElementById('pAgreed').textContent = agreed.length;
+
+    renderPipelineColumn('savedLeads', saved, 'contacted', '💬 Связались');
+    renderPipelineColumn('contactedLeads', contacted, 'agreed', '🤝 Договорились');
+    renderPipelineColumn('agreedLeads', agreed, 'saved', '↩ Назад в сохранённые');
+  }
+
+  function renderPipelineColumn(elementId, leads, nextStage, nextStageLabel) {
+    const el = document.getElementById(elementId);
+    if (leads.length === 0) {
+      el.innerHTML = '<div class="lead"><span>Заказов пока нет</span></div>';
+      return;
+    }
+
+    el.innerHTML = leads.map(j => `
+      <div class="lead">
+        <b>${escapeHtml(j.title)}</b>
+        <span>${escapeHtml(j.source)} · ${escapeHtml(j.budget || '')}</span>
+        <div class="stage-btns">
+          <a href="${escapeHtml(j.url)}" target="_blank" rel="noopener" class="stage-btn" style="text-align:center;text-decoration:none;color:var(--blue)">Открыть</a>
+          <button class="stage-btn" onclick="updateStage('${j.id}', '${nextStage}')">${nextStageLabel}</button>
+          <button class="stage-btn" style="color:var(--red)" onclick="updateStage('${j.id}', null)">✕</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  async function toggleSave(leadId, currentStage) {
+    const newStage = (currentStage && currentStage !== 'null') ? null : 'saved';
+    await updateStage(leadId, newStage);
+  }
+
+  async function updateStage(leadId, stage) {
+    try {
+      await fetch(`/api/leads/${leadId}/stage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ stage, telegram_id: telegramId })
+      });
+      await loadLeads();
+      await loadPipeline();
+    } catch (e) {
+      console.error('Failed to update stage:', e);
+    }
+  }
+
+  document.getElementById('triggerSearchBtn').onclick = async () => {
+    const btn = document.getElementById('triggerSearchBtn');
+    btn.disabled = true;
+    btn.textContent = '⏳ Идет поиск...';
+    try {
+      const res = await fetch('/api/search/trigger', { method: 'POST' });
+      const data = await res.json();
+      btn.textContent = '✓ Готово!';
+      setTimeout(() => { btn.disabled = false; btn.textContent = '⚡ Искать сейчас'; }, 2000);
+      await loadStatus();
+      await loadLeads();
+    } catch (e) {
+      btn.disabled = false;
+      btn.textContent = '⚡ Искать сейчас';
+    }
+  };
+
+  const wrap = document.getElementById('sheetWrap');
+  const openFilters = () => wrap.classList.add('open');
+  document.getElementById('filterBtn').onclick = openFilters;
+  document.getElementById('navFilter').onclick = openFilters;
+  wrap.onclick = e => { if (e.target === wrap) wrap.classList.remove('open'); };
+
+  document.getElementById('daysRange').oninput = e => document.getElementById('daysValue').textContent = e.target.value;
+  document.getElementById('scoreRange').oninput = e => document.getElementById('scoreValue').textContent = e.target.value;
+
+  document.getElementById('apply').onclick = () => {
+    filters.days = +document.getElementById('daysRange').value;
+    filters.score = +document.getElementById('scoreRange').value;
+    filters.sources = [...document.querySelectorAll('.check input:checked')].map(x => x.value);
+    document.getElementById('filterBadge').textContent = filters.sources.length;
+    wrap.classList.remove('open');
+    loadLeads();
+  };
+
+  document.getElementById('search').oninput = loadLeads;
+
+  document.querySelectorAll('.nav button[data-tab]').forEach(btn => btn.onclick = () => {
+    document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const tab = btn.dataset.tab;
+    document.getElementById('feed').style.display = tab === 'feed' ? 'block' : 'none';
+    document.getElementById('pipeline').style.display = tab === 'pipeline' ? 'block' : 'none';
+  });
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  if (window.Telegram?.WebApp) {
+    Telegram.WebApp.ready();
+    Telegram.WebApp.expand();
+  }
+
+  // Initial loads & polling interval for status updates
+  loadStatus();
+  loadLeads();
+  loadPipeline();
+  setInterval(loadStatus, 30000);
+</script>
+</body>
+</html>

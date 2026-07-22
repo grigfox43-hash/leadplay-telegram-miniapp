@@ -1,0 +1,22 @@
+{
+  "name": "leadplay-telegram-miniapp",
+  "version": "1.0.0",
+  "description": "Continuous order search system for Telegram Mini App",
+  "main": "server/index.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js",
+    "scrape": "node -e \"require('./server/scrapers').runAllScrapers().then(r => console.log('Scraped count:', r.length))\""
+  },
+  "dependencies": {
+    "axios": "^1.7.9",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "node-cron": "^3.0.3",
+    "node-telegram-bot-api": "^0.66.0",
+    "rss-parser": "^3.13.0",
+    "sqlite3": "^5.1.7"
+  }
+}

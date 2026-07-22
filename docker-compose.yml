@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  leadplay:
+    build: .
+    container_name: leadplay-app
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - TELEGRAM_BOT_TOKEN=7855491958:AAG8Bt1XtrhnXjvOR-eFaqAqxMoBEaB1q6A
+      - MINI_APP_URL=${MINI_APP_URL:-http://localhost:8080}
+      - POLL_INTERVAL_MINUTES=5
+    volumes:
+      - leadplay-data:/app/data
+
+volumes:
+  leadplay-data:
