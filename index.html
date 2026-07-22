@@ -264,6 +264,18 @@
     .tags { display: flex; flex-wrap: wrap; gap: 6px; }
     .tag { background: var(--bg); border-radius: 7px; padding: 4px 7px; font-size: 11px; color: var(--muted); }
     .budget { font-weight: 800; font-size: 14px; margin-top: 12px; color: var(--text); }
+
+    .contacts-pill {
+      background: var(--blue-soft);
+      color: var(--blue);
+      border: 1px solid rgba(39,131,222,0.25);
+      border-radius: 8px;
+      padding: 6px 10px;
+      margin-top: 10px;
+      font-size: 12px;
+      font-weight: 600;
+      word-break: break-all;
+    }
     
     .actions { display: flex; gap: 6px; margin-top: 12px; }
     .btn {
@@ -741,7 +753,8 @@
             <div class="score">${j.score}%</div>
           </div>
           <p class="desc">${escapeHtml(j.description)}</p>
-          <div class="tags">
+          ${j.contacts ? `<div class="contacts-pill">👤 <b>Контакты:</b> ${escapeHtml(j.contacts)}</div>` : ''}
+          <div class="tags" style="margin-top: 10px;">
             ${(j.tags || []).map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('')}
           </div>
           <div class="budget">${escapeHtml(j.budget || 'Договорная')}</div>
@@ -787,6 +800,7 @@
       <div class="lead">
         <b>${escapeHtml(j.title)}</b>
         <span>${escapeHtml(j.source)} · ${escapeHtml(j.budget || '')}</span>
+        ${j.contacts ? `<div style="font-size:11px;color:var(--blue);margin-top:2px;">👤 ${escapeHtml(j.contacts)}</div>` : ''}
         <div class="stage-btns">
           <a href="${escapeHtml(j.url)}" target="_blank" rel="noopener" class="stage-btn" style="text-align:center;text-decoration:none;color:var(--blue)">Открыть</a>
           <button class="stage-btn" onclick="updateStage('${j.id}', '${nextStage}')">${nextStageLabel}</button>

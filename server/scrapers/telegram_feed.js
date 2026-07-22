@@ -1,5 +1,5 @@
 const axios = require('axios');
-const { calculateRelevanceScore, extractTags } = require('../scoring');
+const { calculateRelevanceScore, extractTags, extractContacts } = require('../scoring');
 
 const CHANNELS = [
   'freelance_ru',
@@ -45,6 +45,7 @@ async function fetchTelegramLeads() {
         const description = cleanText.substring(0, 350);
 
         const score = calculateRelevanceScore(title, cleanText, []);
+        const contacts = extractContacts(cleanText);
 
         if (score >= 50 || /заказ|ищем|нужен|разработка|фриланс|дизайн|верстка|баннер|игра|mobile|js|bot/i.test(cleanText)) {
           const tags = extractTags(cleanText);
@@ -62,6 +63,7 @@ async function fetchTelegramLeads() {
             cls: 'tg',
             tags,
             score,
+            contacts,
             pub_date: new Date().toISOString()
           });
         }

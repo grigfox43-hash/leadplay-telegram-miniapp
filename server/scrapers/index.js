@@ -6,12 +6,12 @@ const fetchRussianFreelanceLeads = require('./fl_ru');
 const fetchGlobalLeads = require('./global_freelance');
 const { run, all, get } = require('../db');
 
-// Seed leads focused on Russian and Global orders
+// Seed leads focused on Russian and Global orders with sample customer contacts
 const SEED_LEADS = [
   {
     external_id: 'seed_ru_1',
     title: 'Разработчик playable ads для мобильной игры',
-    description: 'Ищем разработчика интерактивных рекламных креативов. JavaScript, Canvas/WebGL, оптимизация под рекламные сети (Unity Ads, AppLovin, IronSource).',
+    description: 'Ищем разработчика интерактивных рекламных креативов. JavaScript, Canvas/WebGL, оптимизация под рекламные сети (Unity Ads, AppLovin, IronSource). Писать в TG: @game_producer_ads',
     budget: '70 000–120 000 ₽ за проект',
     currency: 'RUB',
     url: 'https://t.me/freelance_ru',
@@ -20,12 +20,13 @@ const SEED_LEADS = [
     cls: 'tg',
     tags: ['Playable', 'JavaScript', 'WebGL'],
     score: 96,
+    contacts: '@game_producer_ads',
     pub_date: new Date(Date.now() - 3600 * 1000 * 1).toISOString()
   },
   {
     external_id: 'seed_ru_2',
     title: 'HTML5-баннеры и интерактивные анимации GSAP',
-    description: 'Проектная занятость: разработка адаптивных рекламных баннеров, анимация на GSAP и оптимизация веса под требования Google DV360 и Яндекс.',
+    description: 'Проектная занятость: разработка адаптивных рекламных баннеров, анимация на GSAP и оптимизация веса под требования Google DV360 и Яндекс. Email: hr@bannertech.ru',
     budget: 'от 120 000 ₽/мес.',
     currency: 'RUB',
     url: 'https://hh.ru',
@@ -34,12 +35,13 @@ const SEED_LEADS = [
     cls: 'hh',
     tags: ['HTML5 баннер', 'GSAP', 'Яндекс'],
     score: 92,
+    contacts: 'hr@bannertech.ru',
     pub_date: new Date(Date.now() - 3600 * 1000 * 3).toISOString()
   },
   {
     external_id: 'seed_global_1',
     title: 'Senior Playable Ads Developer (Unity / PixiJS)',
-    description: 'Looking for an experienced Playable Ads Developer to build high-converting playable ads for iOS and Android game titles. Remote contract.',
+    description: 'Looking for an experienced Playable Ads Developer to build high-converting playable ads for iOS and Android game titles. Contact: lead_ad_studio@proton.me',
     budget: '$3,500 - $6,000 / mo',
     currency: 'USD',
     url: 'https://www.upwork.com',
@@ -48,12 +50,13 @@ const SEED_LEADS = [
     cls: 'global',
     tags: ['Playable', 'PixiJS', 'Unity'],
     score: 95,
+    contacts: 'lead_ad_studio@proton.me',
     pub_date: new Date(Date.now() - 3600 * 1000 * 4).toISOString()
   },
   {
     external_id: 'seed_ru_3',
     title: 'Верстка интерактивного промо-сайта и мини-игры',
-    description: 'Требуется фронтенд разработчик для создания интерактивной промо-страницы с мини-игрой на JS Canvas. Готовые макеты в Figma.',
+    description: 'Требуется фронтенд разработчик для создания интерактивной промо-страницы с мини-игрой на JS Canvas. Готовые макеты в Figma. TG: @frontend_lead_ru',
     budget: '45 000–60 000 ₽',
     currency: 'RUB',
     url: 'https://career.habr.com',
@@ -62,12 +65,13 @@ const SEED_LEADS = [
     cls: 'tg',
     tags: ['Interactive', 'Canvas', 'Figma'],
     score: 88,
+    contacts: '@frontend_lead_ru',
     pub_date: new Date(Date.now() - 3600 * 1000 * 5).toISOString()
   },
   {
     external_id: 'seed_ru_4',
     title: 'Нужен рекламный HTML5 баннер с clickTag для DV360',
-    description: 'Разработка трех адаптивных размеров рекламного баннера. Анимация, поддержка clickTag и строгий лимит веса архива до 150 КБ.',
+    description: 'Разработка трех адаптивных размеров рекламного баннера. Анимация, поддержка clickTag и строгий лимит веса архива до 150 КБ. Телефон/WhatsApp: +7 925 555-01-99',
     budget: '25 000–35 000 ₽',
     currency: 'RUB',
     url: 'https://www.fl.ru',
@@ -76,21 +80,8 @@ const SEED_LEADS = [
     cls: 'tg',
     tags: ['Баннеры', 'clickTag', 'DV360'],
     score: 85,
+    contacts: '+7 925 555-01-99',
     pub_date: new Date(Date.now() - 3600 * 1000 * 8).toISOString()
-  },
-  {
-    external_id: 'seed_global_2',
-    title: 'Fiverr Pro HTML5 Banner Creator & Animator',
-    description: 'Create interactive HTML5 banners with custom GSAP animations for international digital marketing campaigns.',
-    budget: '$1,200 / project',
-    currency: 'USD',
-    url: 'https://www.fiverr.com',
-    source: 'Fiverr',
-    source_code: 'FVR',
-    cls: 'global',
-    tags: ['Fiverr', 'HTML5', 'GSAP'],
-    score: 87,
-    pub_date: new Date(Date.now() - 3600 * 1000 * 10).toISOString()
   }
 ];
 
@@ -126,8 +117,8 @@ async function runAllScrapers() {
       if (!existing) {
         const id = 'lead_' + Math.random().toString(36).substr(2, 9);
         await run(`
-          INSERT INTO leads (id, external_id, title, description, budget, currency, url, source, source_code, cls, tags, score, pub_date, fetched_at)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          INSERT INTO leads (id, external_id, title, description, budget, currency, url, source, source_code, cls, tags, score, pub_date, fetched_at, contacts)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `, [
           id,
           lead.external_id || id,
@@ -142,7 +133,8 @@ async function runAllScrapers() {
           JSON.stringify(lead.tags || []),
           lead.score || 70,
           lead.pub_date || now,
-          now
+          now,
+          lead.contacts || ''
         ]);
         newCount++;
       }
