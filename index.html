@@ -499,7 +499,7 @@
     ? String(window.Telegram.WebApp.initDataUnsafe.user.id)
     : 'default_user';
 
-  // 1. THEME LOGIC (Dark/Light mode & Telegram sync)
+  // 1. THEME LOGIC
   const themeBtn = document.getElementById('themeToggle');
   
   function initTheme() {
@@ -537,7 +537,6 @@
       } catch (e) {}
     }
 
-    // Populate UI inputs with saved filters
     document.getElementById('keywords').value = filters.keywords || '';
     document.getElementById('daysRange').value = filters.days;
     document.getElementById('daysValue').textContent = filters.days;
@@ -561,20 +560,30 @@
     document.getElementById('filterBadge').textContent = filters.sources.length;
   }
 
-  // 3. WINDOW POSITION & SCROLL MEMORY
+  // 3. WINDOW POSITION & SCROLL POSITION PERSISTENCE
+  let isInitialScrollRestored = false;
+
   function restoreState() {
     const savedTab = localStorage.getItem('leadplay_active_tab') || 'feed';
     switchTab(savedTab);
-
-    const savedScroll = localStorage.getItem('leadplay_scroll_pos');
-    if (savedScroll) {
-      setTimeout(() => window.scrollTo(0, parseInt(savedScroll, 10)), 100);
-    }
   }
 
+  function restoreScrollPos() {
+    if (isInitialScrollRestored) return;
+    const savedScroll = localStorage.getItem('leadplay_scroll_pos');
+    if (savedScroll) {
+      const targetY = parseInt(savedScroll, 10);
+      window.scrollTo({ top: targetY, behavior: 'instant' });
+    }
+    isInitialScrollRestored = true;
+  }
+
+  // Track and save scroll position continuously
   window.addEventListener('scroll', () => {
-    localStorage.setItem('leadplay_scroll_pos', window.scrollY);
-  });
+    if (window.scrollY > 0) {
+      localStorage.setItem('leadplay_scroll_pos', String(window.scrollY));
+    }
+  }, { passive: true });
 
   let currentLeads = [];
   let currentPipeline = { saved: [], contacted: [], agreed: [], rejected: [] };
@@ -606,6 +615,8 @@
       if (data.success) {
         currentLeads = data.leads;
         renderFeed();
+        // Restore scroll after DOM cards are rendered
+        setTimeout(restoreScrollPos, 50);
       }
     } catch (e) {
       console.error('Failed to fetch leads:', e);
@@ -780,22 +791,14 @@
       .replace(/"/g, '&quot;');
   }
 
-  // Telegram Window Expansion & Event Handlers
+  // Telegram Window Expansion & Size Control
   if (window.Telegram?.WebApp) {
     Telegram.WebApp.ready();
-    Telegram.WebApp.expand();
+    Telegram.WebApp.expand(); // Force full vertical expansion
     
-    Telegram.WebApp.onEvent('themeChanged', () => {
-      if (!localStorage.getItem('leadplay_theme')) {
-        applyTheme(Telegram.WebApp.colorScheme || 'light');
-      }
-    });
-
-    Telegram.WebApp.onEvent('viewportChanged', (isStateStable) => {
-      if (isStateStable) {
-        localStorage.setItem('leadplay_window_expanded', Telegram.WebApp.isExpanded ? '1' : '0');
-      }
-    });
+    if (typeof Telegram.WebApp.requestFullscreen === 'function') {
+      try { Telegram.WebApp.requestFullscreen(); } catch (e) {}
+    }
   }
 
   // Initialization Sequence
