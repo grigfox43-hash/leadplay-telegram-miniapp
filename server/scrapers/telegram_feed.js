@@ -5,7 +5,13 @@ const CHANNELS = [
   'freelance_ru',
   'webdev_jobs',
   'gamedev_jobs',
-  'remote_job'
+  'remote_job',
+  'it_job_ru',
+  'freelance_orders',
+  'design_jobs_ru',
+  'normjob',
+  'findervc',
+  'gamedevjob'
 ];
 
 async function fetchTelegramLeads() {
@@ -18,13 +24,11 @@ async function fetchTelegramLeads() {
         headers: {
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
         },
-        timeout: 7000
+        timeout: 6000
       });
 
       const html = response.data || '';
-      // Parse telegram posts using simple regex matching message text blocks
       const messageRegex = /<div class="tgme_widget_message_text[^">]*">([\s\S]*?)<\/div>/gi;
-      const linkRegex = /href="(https:\/\/t\.me\/[^\/]+\/\d+)"/i;
 
       let match;
       let count = 0;
@@ -34,20 +38,20 @@ async function fetchTelegramLeads() {
         const rawText = match[1] || '';
         const cleanText = rawText.replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]*>?/gm, '').trim();
 
-        if (!cleanText || cleanText.length < 30) continue;
+        if (!cleanText || cleanText.length < 25) continue;
 
         const lines = cleanText.split('\n').map(l => l.trim()).filter(Boolean);
-        const title = lines[0] ? lines[0].substring(0, 100) : 'Заказ в Telegram канале';
+        const title = lines[0] ? lines[0].substring(0, 100) : `Заказ в Telegram @${channel}`;
         const description = cleanText.substring(0, 350);
 
         const score = calculateRelevanceScore(title, cleanText, []);
 
-        if (score >= 55 || /playable|html5|баннер|banner|game|разработка|игра/i.test(cleanText)) {
+        if (score >= 50 || /заказ|ищем|нужен|разработка|фриланс|дизайн|верстка|баннер|игра|mobile|js|bot/i.test(cleanText)) {
           const tags = extractTags(cleanText);
           const postUrl = `https://t.me/s/${channel}`;
 
           leads.push({
-            external_id: `tg_${channel}_${Date.now()}_${count}`,
+            external_id: `tg_${channel}_${cleanText.substring(0, 20).replace(/\W/g, '')}`,
             title: title.length > 80 ? title.substring(0, 77) + '...' : title,
             description,
             budget: 'Договорная в TG',

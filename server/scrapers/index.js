@@ -2,104 +2,92 @@ const fetchHabrLeads = require('./habr');
 const fetchHeadHunterLeads = require('./headhunter');
 const fetchFreelancerLeads = require('./freelancer');
 const fetchTelegramLeads = require('./telegram_feed');
+const fetchRussianFreelanceLeads = require('./fl_ru');
 const { run, all, get } = require('../db');
 
-// Backup seed leads to guarantee rich demo feed if external APIs are unreachable or offline
+// Seed leads focused on Russian orders
 const SEED_LEADS = [
   {
-    external_id: 'seed_1',
-    title: 'Разработчик playable ads для game studio',
+    external_id: 'seed_ru_1',
+    title: 'Разработчик playable ads для мобильной игры',
     description: 'Ищем разработчика интерактивных рекламных креативов. JavaScript, Canvas/WebGL, оптимизация под рекламные сети (Unity Ads, AppLovin, IronSource).',
-    budget: '$800–1 200 за креатив',
-    currency: 'USD',
+    budget: '70 000–120 000 ₽ за проект',
+    currency: 'RUB',
     url: 'https://t.me/freelance_ru',
-    source: 'Telegram',
+    source: 'Telegram (@freelance_ru)',
     source_code: 'TG',
     cls: 'tg',
     tags: ['Playable', 'JavaScript', 'WebGL'],
     score: 96,
-    pub_date: new Date(Date.now() - 3600 * 1000 * 2).toISOString()
+    pub_date: new Date(Date.now() - 3600 * 1000 * 1).toISOString()
   },
   {
-    external_id: 'seed_2',
-    title: 'HTML5 playable ad — mobile puzzle game demo',
-    description: 'Build a lightweight playable demo under 5 MB with CTA, analytics events and support for major ad networks.',
-    budget: '$500–900 fixed',
-    currency: 'USD',
-    url: 'https://www.freelancer.com',
-    source: 'Freelancer',
-    source_code: 'FR',
-    cls: 'fr',
-    tags: ['HTML5', 'Canvas', 'Mobile'],
-    score: 93,
-    pub_date: new Date(Date.now() - 3600 * 1000 * 12).toISOString()
-  },
-  {
-    external_id: 'seed_3',
-    title: 'HTML5-баннеры и интерактивные креативы GSAP',
-    description: 'Проектная занятость: разработка адаптивных рекламных материалов, анимация, GSAP и оптимизация веса под Display & Video 360.',
-    budget: 'от 160 000 ₽/мес.',
+    external_id: 'seed_ru_2',
+    title: 'HTML5-баннеры и интерактивные анимации GSAP',
+    description: 'Проектная занятость: разработка адаптивных рекламных баннеров, анимация на GSAP и оптимизация веса под требования Google DV360 и Яндекс.',
+    budget: 'от 120 000 ₽/мес.',
     currency: 'RUB',
     url: 'https://hh.ru',
     source: 'HeadHunter',
     source_code: 'HH',
     cls: 'hh',
-    tags: ['HTML5 banner', 'GSAP', 'Remote'],
-    score: 87,
-    pub_date: new Date(Date.now() - 3600 * 1000 * 24).toISOString()
+    tags: ['HTML5 баннер', 'GSAP', 'Яндекс'],
+    score: 92,
+    pub_date: new Date(Date.now() - 3600 * 1000 * 3).toISOString()
   },
   {
-    external_id: 'seed_4',
-    title: 'Creative Developer — Interactive Advertising & Playables',
-    description: 'Contract role creating interactive ad experiences and playable prototypes for global mobile campaigns.',
-    budget: '€300–450/day',
-    currency: 'EUR',
-    url: 'https://adzuna.com',
-    source: 'Adzuna',
-    source_code: 'AZ',
-    cls: 'az',
-    tags: ['Interactive ads', 'Creative dev'],
-    score: 84,
-    pub_date: new Date(Date.now() - 3600 * 1000 * 48).toISOString()
-  },
-  {
-    external_id: 'seed_5',
-    title: 'Нужен HTML5-баннер для рекламной кампании (clickTag)',
-    description: 'Три адаптивных размера, анимация, clickTag и соответствие требованиям Google Display & Video 360.',
-    budget: '35 000–50 000 ₽',
+    external_id: 'seed_ru_3',
+    title: 'Верстка интерактивного промо-сайта и мини-игры',
+    description: 'Требуется фронтенд разработчик для создания интерактивной промо-страницы с мини-игрой на JS Canvas. Готовые макеты в Figma.',
+    budget: '45 000–60 000 ₽',
     currency: 'RUB',
-    url: 'https://t.me/webdev_jobs',
-    source: 'Telegram',
-    source_code: 'TG',
-    cls: 'tg',
-    tags: ['Banner', 'clickTag', 'DV360'],
-    score: 81,
-    pub_date: new Date(Date.now() - 3600 * 1000 * 72).toISOString()
-  },
-  {
-    external_id: 'seed_6',
-    title: 'Convert game concept into 20-sec playable ad',
-    description: 'Prototype a 20-second mini game experience from supplied assets. Fast loading and clear install CTA required.',
-    budget: '$300–600 fixed',
-    currency: 'USD',
     url: 'https://freelance.habr.com',
     source: 'Habr Freelance',
     source_code: 'HB',
     cls: 'tg',
-    tags: ['Playable', 'Mini game'],
-    score: 78,
-    pub_date: new Date(Date.now() - 3600 * 1000 * 120).toISOString()
+    tags: ['Interactive', 'Canvas', 'Figma'],
+    score: 88,
+    pub_date: new Date(Date.now() - 3600 * 1000 * 5).toISOString()
+  },
+  {
+    external_id: 'seed_ru_4',
+    title: 'Нужен рекламный HTML5 баннер с clickTag для DV360',
+    description: 'Разработка трех адаптивных размеров рекламного баннера. Анимация, поддержка clickTag и строгий лимит веса архива до 150 КБ.',
+    budget: '25 000–35 000 ₽',
+    currency: 'RUB',
+    url: 'https://www.fl.ru',
+    source: 'FL.ru',
+    source_code: 'FL',
+    cls: 'tg',
+    tags: ['Баннеры', 'clickTag', 'DV360'],
+    score: 85,
+    pub_date: new Date(Date.now() - 3600 * 1000 * 8).toISOString()
+  },
+  {
+    external_id: 'seed_ru_5',
+    title: 'Разработка Telegram бота и фриланс интеграция',
+    description: 'Ищем разрабтчика на Node.js / Python для настройки и доработки Telegram бота с приемом платежей и Web App.',
+    budget: '50 000–80 000 ₽',
+    currency: 'RUB',
+    url: 'https://freelance.ru',
+    source: 'Freelance.ru',
+    source_code: 'FR_RU',
+    cls: 'tg',
+    tags: ['Telegram Bot', 'Node.js', 'Web App'],
+    score: 83,
+    pub_date: new Date(Date.now() - 3600 * 1000 * 12).toISOString()
   }
 ];
 
 async function runAllScrapers() {
-  console.log('[Scraper Engine] Starting order search across all sources...');
+  console.log('[Scraper Engine] Starting order search across all Russian sources...');
   
   const results = await Promise.allSettled([
     fetchHabrLeads(),
     fetchHeadHunterLeads(),
     fetchFreelancerLeads(),
-    fetchTelegramLeads()
+    fetchTelegramLeads(),
+    fetchRussianFreelanceLeads()
   ]);
 
   let allLeads = [];
@@ -111,7 +99,7 @@ async function runAllScrapers() {
 
   console.log(`[Scraper Engine] Live scrapers retrieved ${allLeads.length} leads.`);
 
-  // Always append SEED_LEADS to guarantee curated quality leads are present
+  // Append curated Russian SEED_LEADS
   allLeads.push(...SEED_LEADS);
 
   let newCount = 0;
@@ -144,7 +132,7 @@ async function runAllScrapers() {
         newCount++;
       }
     } catch (err) {
-      // ignore duplicate URL constraint errors gracefully
+      // ignore duplicates
     }
   }
 

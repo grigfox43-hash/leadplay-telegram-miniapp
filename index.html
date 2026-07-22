@@ -431,7 +431,7 @@
     </div>
     <div class="search-row">
       <label class="search"><span>⌕</span><input id="search" placeholder="Поиск по заказам..." /></label>
-      <button class="icon-btn" id="filterBtn" aria-label="Фильтры">☷<span class="badge" id="filterBadge">5</span></button>
+      <button class="icon-btn" id="filterBtn" aria-label="Фильтры">☷<span class="badge" id="filterBadge">7</span></button>
     </div>
     <div class="trigger-bar">
       <span id="lastScrapeInfo">Обновление...</span>
@@ -488,10 +488,12 @@
     
     <div class="label">Площадки</div>
     <div class="checks">
-      <label class="check"><input type="checkbox" value="Telegram" checked>Telegram</label>
-      <label class="check"><input type="checkbox" value="Freelancer" checked>Freelancer</label>
-      <label class="check"><input type="checkbox" value="HeadHunter" checked>HeadHunter</label>
+      <label class="check"><input type="checkbox" value="Telegram" checked>Telegram (Каналы)</label>
+      <label class="check"><input type="checkbox" value="FL.ru" checked>FL.ru</label>
+      <label class="check"><input type="checkbox" value="Freelance.ru" checked>Freelance.ru</label>
       <label class="check"><input type="checkbox" value="Habr Freelance" checked>Habr Freelance</label>
+      <label class="check"><input type="checkbox" value="HeadHunter" checked>HeadHunter</label>
+      <label class="check"><input type="checkbox" value="Freelancer" checked>Freelancer.com</label>
       <label class="check"><input type="checkbox" value="Adzuna" checked>Adzuna</label>
     </div>
     
@@ -520,6 +522,8 @@
   // SVG PLATFORM LOGOS MAP
   const PLATFORM_ICONS = {
     'Telegram': `<svg viewBox="0 0 24 24" width="24" height="24" fill="none"><circle cx="12" cy="12" r="12" fill="#0088cc"/><path d="M5.4 11.9l12.7-4.9c.6-.2 1.1.1.9.9l-2.2 10.2c-.2.7-.6.9-1.2.6l-3.4-2.5-1.6 1.6c-.2.2-.4.4-.8.4l.2-3.4 6.3-5.7c.3-.3-.1-.4-.4-.2L8.2 13.9 4.9 12.9c-.7-.2-.7-.7.5-1.0z" fill="#fff"/></svg>`,
+    'FL.ru': `<svg viewBox="0 0 24 24" width="24" height="24" fill="none"><circle cx="12" cy="12" r="12" fill="#F05023"/><text x="12" y="16.5" font-size="11" font-weight="900" text-anchor="middle" fill="#fff" font-family="Arial">FL</text></svg>`,
+    'Freelance.ru': `<svg viewBox="0 0 24 24" width="24" height="24" fill="none"><circle cx="12" cy="12" r="12" fill="#2E7D32"/><text x="12" y="16.5" font-size="10" font-weight="900" text-anchor="middle" fill="#fff" font-family="Arial">FR.RU</text></svg>`,
     'Freelancer': `<svg viewBox="0 0 24 24" width="24" height="24" fill="none"><circle cx="12" cy="12" r="12" fill="#0086E6"/><path d="M12 5l-7 4.5 7 4.5 7-4.5L12 5zm-5 6.5v4l5 3 5-3v-4l-5 3-5-3z" fill="#fff"/></svg>`,
     'HeadHunter': `<svg viewBox="0 0 24 24" width="24" height="24" fill="none"><circle cx="12" cy="12" r="12" fill="#E10915"/><text x="12" y="16.5" font-size="12" font-weight="900" text-anchor="middle" fill="#fff" font-family="Arial">hh</text></svg>`,
     'Habr Freelance': `<svg viewBox="0 0 24 24" width="24" height="24" fill="none"><circle cx="12" cy="12" r="12" fill="#65a3be"/><text x="12" y="16.5" font-size="11" font-weight="900" text-anchor="middle" fill="#fff" font-family="Arial">HB</text></svg>`,
@@ -559,7 +563,7 @@
   // 2. FILTERS PERSISTENCE
   let filters = {
     keywords: '',
-    sources: ['Telegram', 'Freelancer', 'HeadHunter', 'Habr Freelance', 'Adzuna'],
+    sources: ['Telegram', 'FL.ru', 'Freelance.ru', 'Habr Freelance', 'HeadHunter', 'Freelancer', 'Adzuna'],
     days: 14,
     score: 55
   };
