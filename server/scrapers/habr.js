@@ -2,47 +2,49 @@ const Parser = require('rss-parser');
 const parser = new Parser();
 const { calculateRelevanceScore, extractTags } = require('../scoring');
 
-const HABR_RSS_URL = 'https://freelance.habr.com/tasks.rss';
-
+/**
+ * Scraper for Хабр Карьера (career.habr.com)
+ * Replaces old closed Habr Freelance service.
+ */
 async function fetchHabrLeads() {
-  try {
-    const feed = await parser.parseURL(HABR_RSS_URL);
-    const leads = [];
+  const leads = [];
+  const rssUrl = 'https://career.habr.com/vacancies/rss';
 
+  try {
+    const feed = await parser.parseURL(rssUrl);
     for (const item of feed.items || []) {
       const title = item.title || '';
-      const description = item.contentSnippet || item.content || '';
-      const link = item.link || '';
+      const description = (item.contentSnippet || item.content || '').replace(/<[^>]*>?/gm, '').trim().substring(0, 300) + '...';
+      const link = item.link || item.guid || '';
       const pubDate = item.pubDate ? new Date(item.pubDate).toISOString() : new Date().toISOString();
 
+      const fullText = title + ' ' + description;
       const score = calculateRelevanceScore(title, description, []);
-      
-      // Filter for relevant or general web/game leads
-      if (score >= 60 || /playable|html5|баннер|banner|game|игра|интерактив/i.test(title + ' ' + description)) {
-        const tags = extractTags(title + ' ' + description);
-        
+
+      if (score >= 50 || /разработк|верстк|дизайн|баннер|игра|сайт|html|js|game|mobile|анимаци/i.test(fullText)) {
+        const tags = extractTags(fullText);
+
         leads.push({
-          external_id: link,
+          external_id: link || `habr_career_${Date.now()}_${Math.random()}`,
           title,
-          description: description.replace(/<[^>]*>?/gm, '').trim().substring(0, 300) + '...',
-          budget: item.categories ? item.categories.join(', ') : 'Договорная',
+          description,
+          budget: 'Договорная на Хабр Карьере',
           currency: 'RUB',
           url: link,
-          source: 'Habr Freelance',
+          source: 'Хабр Карьера',
           source_code: 'HB',
-          cls: 'tg', // theme styling class
+          cls: 'tg',
           tags,
           score,
           pub_date: pubDate
         });
       }
     }
-
-    return leads;
-  } catch (error) {
-    console.error('[Scraper] Habr error:', error.message);
-    return [];
+  } catch (err) {
+    console.warn('[Scraper] Habr Career RSS skipped:', err.message);
   }
+
+  return leads;
 }
 
 module.exports = fetchHabrLeads;

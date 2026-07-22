@@ -438,7 +438,7 @@
     </div>
     <div class="search-row">
       <label class="search"><span>⌕</span><input id="search" placeholder="Поиск по заказам..." /></label>
-      <button class="icon-btn" id="filterBtn" aria-label="Фильтры">☷<span class="badge" id="filterBadge">11</span></button>
+      <button class="icon-btn" id="filterBtn" aria-label="Фильтры">☷<span class="badge" id="filterBadge">12</span></button>
     </div>
     <div class="trigger-bar">
       <span id="lastScrapeInfo">Обновление...</span>
@@ -498,7 +498,7 @@
       <label class="check"><input type="checkbox" value="Telegram" checked>Telegram (Каналы)</label>
       <label class="check"><input type="checkbox" value="FL.ru" checked>FL.ru</label>
       <label class="check"><input type="checkbox" value="Freelance.ru" checked>Freelance.ru</label>
-      <label class="check"><input type="checkbox" value="Habr Freelance" checked>Habr Freelance</label>
+      <label class="check"><input type="checkbox" value="Хабр Карьера" checked>Хабр Карьера</label>
       <label class="check"><input type="checkbox" value="HeadHunter" checked>HeadHunter</label>
     </div>
 
@@ -542,7 +542,7 @@
     'Freelance.ru': `<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#2E7D32"/><text x="12" y="15" font-size="9" font-weight="900" text-anchor="middle" fill="#fff" font-family="sans-serif">FR.RU</text></svg>`,
     'Freelancer': `<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#0086E6"/><path d="M12 5l-7 4.5 7 4.5 7-4.5L12 5zm-5 6.5v4l5 3 5-3v-4l-5 3-5-3z" fill="#fff"/></svg>`,
     'HeadHunter': `<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#E10915"/><text x="12" y="16" font-size="12" font-weight="900" text-anchor="middle" fill="#fff" font-family="sans-serif">hh</text></svg>`,
-    'Habr Freelance': `<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#65a3be"/><text x="12" y="16" font-size="11" font-weight="900" text-anchor="middle" fill="#fff" font-family="sans-serif">HB</text></svg>`,
+    'Хабр Карьера': `<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#65a3be"/><text x="12" y="16" font-size="11" font-weight="900" text-anchor="middle" fill="#fff" font-family="sans-serif">HB</text></svg>`,
     'Upwork': `<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#14a800"/><text x="12" y="16" font-size="11" font-weight="900" text-anchor="middle" fill="#fff" font-family="sans-serif">UP</text></svg>`,
     'Fiverr': `<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#1dbf73"/><text x="12" y="16" font-size="11" font-weight="900" text-anchor="middle" fill="#fff" font-family="sans-serif">FVR</text></svg>`,
     'Guru.com': `<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#3665ad"/><text x="12" y="16" font-size="10" font-weight="900" text-anchor="middle" fill="#fff" font-family="sans-serif">GURU</text></svg>`,
@@ -558,7 +558,7 @@
     if (s.includes('freelance.ru') || s.includes('fr_ru')) return PLATFORM_ICONS['Freelance.ru'];
     if (s.includes('freelancer')) return PLATFORM_ICONS['Freelancer'];
     if (s.includes('headhunter') || s.includes('hh')) return PLATFORM_ICONS['HeadHunter'];
-    if (s.includes('habr') || s.includes('hb')) return PLATFORM_ICONS['Habr Freelance'];
+    if (s.includes('habr') || s.includes('hb')) return PLATFORM_ICONS['Хабр Карьера'];
     if (s.includes('upwork') || s.includes('upw')) return PLATFORM_ICONS['Upwork'];
     if (s.includes('fiverr') || s.includes('fvr')) return PLATFORM_ICONS['Fiverr'];
     if (s.includes('guru')) return PLATFORM_ICONS['Guru.com'];
@@ -592,7 +592,7 @@
   // 2. FILTERS PERSISTENCE
   let filters = {
     keywords: '',
-    sources: ['Telegram', 'FL.ru', 'Freelance.ru', 'Habr Freelance', 'HeadHunter', 'Upwork', 'Fiverr', 'Guru.com', 'Remotive', 'WeWorkRemotely', 'Freelancer', 'Adzuna'],
+    sources: ['Telegram', 'FL.ru', 'Freelance.ru', 'Хабр Карьера', 'HeadHunter', 'Upwork', 'Fiverr', 'Guru.com', 'Remotive', 'WeWorkRemotely', 'Freelancer', 'Adzuna'],
     days: 14,
     score: 55
   };
