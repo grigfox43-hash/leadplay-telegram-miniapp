@@ -20,6 +20,7 @@
       --orange: #b86823;
       --orange-soft: #fff1e5;
       --red: #c84b42;
+      --red-soft: #fdf0ed;
       --shadow: 0 1px 2px rgba(0,0,0,.04),0 8px 24px rgba(0,0,0,.05);
       --r: 14px;
     }
@@ -37,6 +38,7 @@
       --orange: #e58d43;
       --orange-soft: rgba(229,141,67,0.15);
       --red: #e66258;
+      --red-soft: rgba(230,98,88,0.15);
     }
 
     * { box-sizing: border-box; }
@@ -210,6 +212,8 @@
       border-radius: var(--r);
       padding: 14px;
       box-shadow: var(--shadow);
+      position: relative;
+      transition: transform 0.2s, opacity 0.2s;
     }
     .card-head { display: flex; gap: 10px; align-items: flex-start; }
     .source {
@@ -276,6 +280,16 @@
       font-size: 14px;
     }
     .btn.saved { background: var(--green-soft); border-color: var(--green-soft); color: var(--green); }
+    .btn.hide {
+      background: var(--red-soft);
+      border-color: rgba(200,75,66,0.2);
+      color: var(--red);
+      padding: 0 11px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 13px;
+    }
 
     .empty { display: none; text-align: center; padding: 48px 24px; color: var(--muted); }
     .nav {
@@ -653,7 +667,7 @@
       const ageStr = j.age === 0 ? 'сегодня' : `${j.age} дн. назад`;
 
       return `
-        <article class="card">
+        <article class="card" id="card_${j.id}">
           <div class="card-head">
             <div class="source ${j.cls || 'tg'}">${j.source_code || 'LP'}</div>
             <div>
@@ -671,6 +685,9 @@
             <a href="${escapeHtml(j.url)}" target="_blank" rel="noopener" class="btn primary">Открыть заказ ↗</a>
             <button class="btn ${isSaved ? 'saved' : ''}" onclick="toggleSave('${j.id}', '${j.stage}')">
               ${isSaved ? '✓ В работе' : 'В воронку'}
+            </button>
+            <button class="btn hide" title="Скрыть заказ навсегда" onclick="hideLead('${j.id}')">
+              ✕ Скрыть
             </button>
           </div>
         </article>
@@ -709,10 +726,21 @@
         <div class="stage-btns">
           <a href="${escapeHtml(j.url)}" target="_blank" rel="noopener" class="stage-btn" style="text-align:center;text-decoration:none;color:var(--blue)">Открыть</a>
           <button class="stage-btn" onclick="updateStage('${j.id}', '${nextStage}')">${nextStageLabel}</button>
-          <button class="stage-btn" style="color:var(--red)" onclick="updateStage('${j.id}', null)">✕</button>
+          <button class="stage-btn" style="color:var(--red)" onclick="hideLead('${j.id}')">✕ Скрыть</button>
         </div>
       </div>
     `).join('');
+  }
+
+  async function hideLead(leadId) {
+    const cardEl = document.getElementById(`card_${leadId}`);
+    if (cardEl) {
+      cardEl.style.transform = 'scale(0.95)';
+      cardEl.style.opacity = '0';
+    }
+    setTimeout(async () => {
+      await updateStage(leadId, 'hidden');
+    }, 200);
   }
 
   async function toggleSave(leadId, currentStage) {
@@ -790,7 +818,7 @@
       .replace(/"/g, '&quot;');
   }
 
-  // Telegram Window Handlers - Allows Telegram Desktop to naturally preserve user's window size & position
+  // Telegram Window Handlers
   if (window.Telegram?.WebApp) {
     Telegram.WebApp.ready();
   }

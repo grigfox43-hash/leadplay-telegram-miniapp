@@ -47,6 +47,8 @@ app.get('/api/leads', async (req, res) => {
         stage: stateMap[r.id] || null
       };
     }).filter(j => {
+      // Exclude hidden or rejected leads from feed
+      if (j.stage === 'hidden' || j.stage === 'rejected') return false;
       // Source filter
       if (sourcesParam.length > 0 && !sourcesParam.includes(j.source)) return false;
       // Age filter
@@ -83,15 +85,14 @@ app.get('/api/pipeline', async (req, res) => {
       SELECT ls.stage, ls.notes, ls.updated_at, l.*
       FROM lead_states ls
       JOIN leads l ON ls.lead_id = l.id
-      WHERE ls.telegram_id = ?
+      WHERE ls.telegram_id = ? AND ls.stage NOT IN ('hidden', 'rejected')
       ORDER BY ls.updated_at DESC
     `, [telegramId]);
 
     const pipeline = {
       saved: [],
       contacted: [],
-      agreed: [],
-      rejected: []
+      agreed: []
     };
 
     states.forEach(row => {
@@ -118,7 +119,7 @@ app.get('/api/pipeline', async (req, res) => {
 
 /**
  * POST /api/leads/:id/stage
- * Toggle or set stage for a lead in funnel pipeline
+ * Toggle or set stage for a lead in funnel pipeline (saved, contacted, agreed, hidden)
  */
 app.post('/api/leads/:id/stage', async (req, res) => {
   try {
@@ -126,7 +127,7 @@ app.post('/api/leads/:id/stage', async (req, res) => {
     const { stage, telegram_id = 'default_user', notes = '' } = req.body;
 
     if (!stage) {
-      // Remove from pipeline if stage is null/empty
+      // Remove state record if stage is null/empty
       await run('DELETE FROM lead_states WHERE telegram_id = ? AND lead_id = ?', [telegram_id, leadId]);
       return res.json({ success: true, stage: null });
     }
