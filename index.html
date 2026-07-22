@@ -258,15 +258,19 @@
     .tag { background: var(--bg); border-radius: 7px; padding: 4px 7px; font-size: 11px; color: var(--muted); }
     .budget { font-weight: 800; font-size: 14px; margin-top: 12px; color: var(--text); }
     
-    .actions { display: flex; gap: 8px; margin-top: 12px; }
+    .actions { display: flex; gap: 6px; margin-top: 12px; }
     .btn {
-      height: 40px;
+      height: 38px;
       border-radius: 10px;
       border: 1px solid var(--line);
       background: var(--surface);
       color: var(--text);
-      padding: 0 13px;
+      padding: 0 10px;
       font-weight: 700;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
     .btn.primary {
       background: var(--blue);
@@ -274,20 +278,16 @@
       color: #fff;
       flex: 1;
       text-decoration: none;
-      display: grid;
-      place-items: center;
-      font-size: 14px;
+      font-size: 12px;
     }
     .btn.saved { background: var(--green-soft); border-color: var(--green-soft); color: var(--green); }
     .btn.hide {
       background: var(--red-soft);
       border-color: rgba(200,75,66,0.2);
       color: var(--red);
-      padding: 0 11px;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      font-size: 13px;
+      padding: 0 9px;
+      gap: 3px;
+      font-size: 12px;
     }
 
     .empty { display: none; text-align: center; padding: 48px 24px; color: var(--muted); }
