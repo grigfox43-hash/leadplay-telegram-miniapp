@@ -790,14 +790,9 @@
       .replace(/"/g, '&quot;');
   }
 
-  // Telegram Window Expansion & Size Control
+  // Telegram Window Handlers - Allows Telegram Desktop to naturally preserve user's window size & position
   if (window.Telegram?.WebApp) {
     Telegram.WebApp.ready();
-    Telegram.WebApp.expand();
-    
-    if (typeof Telegram.WebApp.requestFullscreen === 'function') {
-      try { Telegram.WebApp.requestFullscreen(); } catch (e) {}
-    }
   }
 
   // Initialization Sequence
